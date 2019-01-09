@@ -41,13 +41,13 @@ namespace fuzzy{
                     std::cerr << "The pattern is too long" << std::endl;
                     return;
                 }
-                unsigned long R;
+                unsigned long R = 0;
                 std::array<unsigned long, CHAR_MAX + 1> pattern_mask;
                 pattern_mask.fill(~0);
-                for(int i = 0; i < pattern.length(); ++i){
+                for(size_t i = 0; i < pattern.length(); ++i){
                     pattern_mask[pattern[i]] &= ~(1UL << i);
                 }
-                for(int i = 0; i < text.length(); ++i)
+                for(size_t i = 0; i < text.length(); ++i)
                 {
                     R |= pattern_mask[text[i]];
                     R <<= 1;
@@ -71,16 +71,16 @@ namespace fuzzy{
                 std::fill(R.begin(), R.end(), ~1);
                 std::array<unsigned long, CHAR_MAX + 1> pattern_mask;
                 pattern_mask.fill(~0);
-                for(int i = 0; i < pattern.length(); ++i){
+                for(size_t i = 0; i < pattern.length(); ++i){
                     pattern_mask[pattern[i]] &= ~(1UL << i);
                 }
-                for(int i = 0; i < text.length(); ++i)
+                for(size_t i = 0; i < text.length(); ++i)
                 {
                     unsigned long old_Rd1 = R[0];
                     R[0] |= pattern_mask[text[i]];
                     R[0] <<= 1;
             
-                    for(int d = 1; d <=mismatch; ++d){
+                    for(int d = 1; d <= mismatch; ++d){
                         unsigned long tmp = R[d];
                         R[d] = (old_Rd1 & (R[d] | pattern_mask[text[i]])) << 1;
                         old_Rd1 = tmp;
