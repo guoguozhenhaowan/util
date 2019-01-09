@@ -6,14 +6,13 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <list>
 
 namespace fuzzy{
     class bitap{
         const std::string& text;
         const std::string& pattern;
         int mismatch;
-        std::list<int> results;
+        std::vector<int> results;
         public:
             bitap(const std::string& t, const std::string& p) : text(t), pattern(p){
                 mismatch = 0;
@@ -21,7 +20,7 @@ namespace fuzzy{
             bitap(const std::string& t, const std::string& p, int k) : text(t), pattern(p), mismatch(k){};
             ~bitap(){};
             
-            const std::list<int>& getResults(){
+            const std::vector<int>& getResults(){
                 return results;
             }
             
@@ -68,7 +67,7 @@ namespace fuzzy{
                     return;
                 }
                 std::vector<unsigned long> R;
-                R.resize(mismatch);
+                R.resize(mismatch + 1);
                 std::fill(R.begin(), R.end(), ~1);
                 std::array<unsigned long, CHAR_MAX + 1> pattern_mask;
                 pattern_mask.fill(~0);
