@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <libgen.h>
 #include <zlib.h>
 #include <kseq.h>
 #include <CLI.hpp>
@@ -9,15 +10,15 @@ KSEQ_INIT(gzFile, gzread)
 
 int main(int argc, char** argv)
 {
-    if(argc < 2)
-    {
-        std::cout << "fa2bed -h for help" << std::endl;
-        return 0;
-    }
+    std::string sys_cmd = std::string(argv[0]) + " -h";
+    if(argc < 2){std::system(sys_cmd.c_str()); return 0;}
+    
+    std::string version = "0.0.0";
+    std::string cmp_time = std::string(__TIME__) + " " + std::string(__DATE__);
     std::string infa;
     std::string outbed;
     
-    CLI::App app{"fasta to bed"};
+    CLI::App app{"program: " + std::string(basename(argv[0])) + "\nversion: " + version + "\nupdated: " + cmp_time};
     app.add_option("-i,--in", infa, "input fasta file")->required(true)->check(CLI::ExistingFile);
     app.add_option("-o,--out", outbed, "output bed file");
     CLI_PARSE(app, argc, argv);

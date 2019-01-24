@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <libgen.h>
 #include <zlib.h>
 #include <kseq.h>
 #include <CLI.hpp>
@@ -9,17 +10,17 @@ KSEQ_INIT(gzFile, gzread)
 
 int main(int argc, char** argv)
 {
-    if(argc < 2)
-    {
-        std::cout << argv[0] << " -h for help" << std::endl;
-        return 0;
-    }
+    std::string sys_cmd = std::string(argv[0]) + " -h";
+    if(argc < 2){std::system(sys_cmd.c_str()); return 0;}
+    
+    std::string cmp_time = std::string(__TIME__) + " " + std::string(__DATE__);
+    std::string version = "0.0.0";
     std::string infa;
     std::string patt;
     std::string outfa = "ext.fa";
     unsigned long long maxline = 1000000ULL;
     
-    CLI::App app{"fasta extraction"};
+    CLI::App app{"program: " + std::string(basename(argv[0])) + "\nversion: " + version + "\nupdated: " + cmp_time};
     app.add_option("-i,--in", infa, "input fasta file")->required(true)->check(CLI::ExistingFile);
     app.add_option("-p,--patt", patt, "fixed pattern to search")->required(true);
     CLI::Option* pout = app.add_option("-o,--out", outfa, "output fasta file");
