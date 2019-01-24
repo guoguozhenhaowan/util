@@ -1,4 +1,4 @@
-useful utilities  
+utilities
 
 |File|Functions|
 |----|---------| 
