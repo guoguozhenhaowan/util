@@ -8,3 +8,4 @@ utilities
 |getCDSBed.py|get CDS bed region in genome|
 |getGenBank.py|get genbank file of each transcript|
 |getTrs.py|get transcript fasta from genome|
+|verpair.c|get different read name of two fastq file|
