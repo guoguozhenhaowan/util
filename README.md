@@ -9,3 +9,5 @@ utilities
 |getGenBank.py|get genbank file of each transcript|
 |getTrs.py|get transcript fasta from genome|
 |verpair.c|get different read name of two fastq file|
+|ascii.characters.for.table|ascii code for table drawing|
+|versqual.c|check fq quality && sequence length|
