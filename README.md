@@ -11,3 +11,5 @@ utilities
 |verpair.c|get different read name of two fastq file|
 |ascii.characters.for.table|ascii code for table drawing|
 |versqual.c|check fq quality && sequence length|
+|CLI.hpp|recode from https://github.com/CLIUtils/CLI11|
+|dirutil.h|recode from https://github.com/gpakosz/whereami|
