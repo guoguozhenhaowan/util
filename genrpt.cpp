@@ -1,0 +1,158 @@
+/* generate report file
+ * required files listed below
+ * lib.filt.log         : rna filter log file
+ * lib_DDP_QC.tsv       : DDP QC tsv file
+ * lib_IDP_QC.tsv       : IDP QC tsv file
+ * lib.FusionReport.txt : fusionMap result
+ * lib/abundance.tsv    : kallisto result
+ * ensebml2genename     : NCBI ensembl to genename file
+ * geneset.tsv          : geneset tsv file
+ */
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <utility>
+#include <tuple>
+#include <map>
+#include "CLI.hpp"
+
+namespace genrpt{
+    struct args{
+        std::string filtlog; // lib.filt.log
+        std::string ddpqc; // lib_DDP_QC.tsv
+        std::string idpqc; // lib_IDP_QC.tsv
+        std::string fusionrpt; // lib.FusionReport.txt
+        std::string kabundance; // lib/abundance.tsv
+        std::string ens2gname; // ensebml2genename
+        std::string gset; // geneset.tsv
+        std::string outf; // lib.report
+    };
+    
+    struct stats{
+        std::map<std::string, double> gexp; // gene expression of gset 
+        std::map<std::string, double> gout; // other gene expression 
+        double rratio; // rrna ratio 
+        double rfusion; // reads support fusion
+    };
+    
+    void get_exp(genrpt::stats& s, const genrpt::args& a);
+    void get_fratio(genrpt::stats& s, const genrpt::args& a);
+    double get_rratio(const std::string& filtlog);
+}
+
+int main(int argc, char** argv){
+    genrpt::args a;
+    CLI::App app("generate report program");
+    app.add_option("-f", a.filtlog, "lib.filt.log")->required();
+    app.add_option("-d", a.ddpqc, "lib_DDP_QC.tsv")->required();
+    app.add_option("-i", a.idpqc, "lib_IDP_QC.tsv")->required();
+    app.add_option("-s", a.fusionrpt, "lib.FusionReport.txt")->required();
+    app.add_option("-k", a.kabundance, "lib/abundance.tsv")->required();
+    app.add_option("-e", a.ens2gname, "ensebml2genename")->required();
+    app.add_option("-g", a.gset, "geneset.tsv")->required();
+    app.add_option("-o", a.outf, "lib.report")->required();
+    CLI_PARSE(app, argc, argv);
+
+    genrpt::stats s;
+    s.rratio = genrpt::get_rratio(a.filtlog);
+    genrpt::get_exp(s, a);
+    genrpt::get_fratio(s, a);
+}
+
+void genrpt::get_exp(genrpt::stats& s, const genrpt::args& a){
+    std::map<std::string, std::vector<std::string>> gem; // gene to ensembl map
+    std::map<std::string, double> eex; // ensembl express 
+    std::ifstream fe2g(a.ens2gname), fexp(a.kabundance), fgset(a.gset);
+    std::stringstream ss1, ss2, ss3;
+    ss1 << fe2g.rdbuf();
+    ss2 << fexp.rdbuf();
+    ss3 << fgset.rdbuf();
+    std::string ens, gene, tid, line;
+    double l, el, ec, tpm;
+    std::string gsg, gsl, gst, gsp;
+    std::getline(ss1, line);
+    std::getline(ss2, line);
+    while(ss1 >> ens >> gene){
+        if(gem.find(gene) == gem.end()){
+            gem[gene] = {ens};
+        }else{
+            gem[gene].push_back(ens);
+        }
+    }
+    while(ss2 >> tid >> l >> el >> ec >> tpm){
+        eex[tid.substr(0, tid.find_first_of("."))] = tpm;
+    }
+    for(auto& e: gem){
+        double exp = 0.0;
+        for(auto& f: e.second){
+            exp += ((eex.find(f) != eex.end()) ? eex[f] : 0);
+        }
+        if(exp > 0){
+            s.gout[e.first] = exp;
+        }
+    }
+    std::vector<std::string> giset;
+    while(ss3 >> gsg >> gsl >> gst >> gsp){
+        if(s.gout.find(gsg) != s.gout.end()){
+            s.gexp[gsg] = s.gout[gsg];
+        }else{
+            s.gexp[gsg] = 0;
+        }
+        giset.push_back(gsg);
+    }
+    for(auto& e: giset){
+        s.gout.erase(e);
+    }
+}
+
+void genrpt::get_fratio(genrpt::stats& s, const genrpt::args& a){
+    std::pair<std::string, std::string> tpair;
+    std::vector<std::string> tfus(26);
+    std::vector<std::string> vtfus; 
+    std::ifstream frq(a.ddpqc), frf(a.fusionrpt);
+    std::stringstream ss1, ss2;
+    ss1 << frq.rdbuf();
+    ss2 << frf.rdbuf();
+    std::string line;
+    size_t ttreads;
+    while(std::getline(ss1, line)){
+        auto p = line.find_first_of("\t");
+        tpair.first = line.substr(0, p);
+        tpair.second = line.substr(p + 1);
+        if(tpair.first == "Total Reads"){
+            ttreads = std::atoi(tpair.second.c_str());
+            break;
+        }
+    }
+    std::getline(ss2, line);
+    std::vector<size_t> vpos = {0};
+    while(std::getline(ss2, line)){
+        size_t p = 0;
+        vpos.clear();
+        for(size_t i = 0; i < 4; ++i){
+            p = line.find_first_of("\t", p);
+            ++p;
+            vpos.push_back(p);
+        }
+        std::string seedc = line.substr(vpos[1], vpos[2] - 1);
+        std::string resuc = line.substr(vpos[2], vpos[3] - 1);
+        s.rfusion += std::atof(seedc.c_str()) + std::atof(resuc.c_str());
+    }
+    s.rfusion /= ttreads;
+}
+
+double genrpt::get_rratio(const std::string& filtlog){
+    std::ifstream fr(filtlog);
+    std::string line, suffix;
+    while(std::getline(fr, line)){
+        if(line[0] == '%'){
+            suffix = line.substr(line.find_last_of(": ") + 1);
+            return(std::atof(suffix.c_str()));
+        }
+    }
+    return 0;
+}
