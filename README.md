@@ -13,3 +13,5 @@ utilities
 |versqual.c|check fq quality && sequence length|
 |CLI.hpp|recode from https://github.com/CLIUtils/CLI11|
 |dirutil.h|recode from https://github.com/gpakosz/whereami|
+|util.h|useful functions|
+|gtest.cpp|google test fuctions|
