@@ -4,8 +4,11 @@
 #include <string>
 #include <cerrno>
 #include <cstdio>
+#include <cctype>
 #include <vector>
+#include <numeric>
 #include <iostream>
+#include <algorithm>
 #include <sys/stat.h>
 
 namespace util{
@@ -123,22 +126,23 @@ namespace util{
      * @return basename of path
      */
     inline std::string basename(const std::string& path){
-        if(path.find_first_of(" \t\n\v\f\r") != std::string::npos){
+        std::string fpath = util::replace(path, "~", std::string(std::getenv("HOME")) + "/");
+        if(fpath.find_first_of(" \t\n\v\f\r") != std::string::npos){
             return "";
         }
-        std::string::size_type pos1 = path.find_last_of("/\\");
+        std::string::size_type pos1 = fpath.find_last_of("/\\");
         if(pos1 == std::string::npos){
-            return path;
+            return fpath;
         }
-        std::string::size_type pos2 = path.find_last_not_of("/\\");
-        if(pos2 == path.size() - 1){
-            return path.substr(pos1 + 1, pos2 - pos1);
+        std::string::size_type pos2 = fpath.find_last_not_of("/\\");
+        if(pos2 == fpath.size() - 1){
+            return fpath.substr(pos1 + 1, pos2 - pos1);
         }
-        std::string::size_type pos3 = path.find_last_of("/\\", pos2);
+        std::string::size_type pos3 = fpath.find_last_of("/\\", pos2);
         if(pos3 == std::string::npos){
-            return path.substr(0, pos2 + 1);
+            return fpath.substr(0, pos2 + 1);
         }
-        return path.substr(pos3 + 1, pos2 - pos3);
+        return fpath.substr(pos3 + 1, pos2 - pos3);
     }
 
     /** get the dirname of a path string
@@ -146,7 +150,8 @@ namespace util{
      * @return dirname of path
      */
     inline std::string dirname(const std::string& path){
-        std::string::size_type pos = path.find_last_of("/\\");
+        std::string fpath = util::replace(path, "~", std::string(std::getenv("HOME")) + "/");
+        std::string::size_type pos = fpath.find_last_of("/\\");
         if(pos == std::string::npos){
 #ifdef _WIN32
             return ".\\";
@@ -154,8 +159,8 @@ namespace util{
             return "./";
 #endif
         }
-        if(pos == path.size() - 1){
-            std::string::size_type pos1 = path.find_last_not_of("/\\");
+        if(pos == fpath.size() - 1){
+            std::string::size_type pos1 = fpath.find_last_not_of("/\\");
             if(pos1 == std::string::npos){
 #ifdef _WIN32
                 return "\\";
@@ -163,7 +168,7 @@ namespace util{
                 return "/";
 #endif
             }
-            std::string::size_type pos2 = path.find_last_of("/\\", pos1);
+            std::string::size_type pos2 = fpath.find_last_of("/\\", pos1);
             if(pos2 == std::string::npos){
 #ifdef _WIN32
                 return ".\\";
@@ -171,10 +176,10 @@ namespace util{
                 return "./";
 #endif
             }else{
-                return path.substr(0, pos2 + 1);
+                return fpath.substr(0, pos2 + 1);
             }
         }else{
-            return path.substr(0, pos + 1);
+            return fpath.substr(0, pos + 1);
         }
     }
 
@@ -244,11 +249,12 @@ namespace util{
      * @return true if make directories successfully
      */
     bool makedir(const std::string& path){
+        std::string fpath = util::replace(path, "~", std::string(std::getenv("HOME")) + "/");
 #ifdef _WIN32
-        int ret = _mkdir(path.c_str());
+        int ret = _mkdir(fpath.c_str());
 #else
         mode_t mode = 0755;
-        int ret = mkdir(path.c_str(), mode);
+        int ret = mkdir(fpath.c_str(), mode);
 #endif
         if(ret == 0){
             return true;
@@ -256,21 +262,93 @@ namespace util{
         switch(errno){
             case ENOENT:
                 {
-                    std::cout << util::dirname(path) << std::endl;
-                    if(!util::makedir(util::dirname(path))){
+                    if(!util::makedir(util::dirname(fpath))){
                         return false;
                     }
                 }
 #ifdef _WIN32
-                return 0 == _mkdir(path.c_str());
+                return 0 == _mkdir(fpath.c_str());
 #else
-                return 0 == mkdir(path.c_str(), mode);
+                return 0 == mkdir(fpath.c_str(), mode);
 #endif
             case EEXIST:
-                return util::isdir(path);
+                return util::isdir(fpath);
             default:
                 return false;
         }
+    }
+
+    /* remove non-alpha characters from a string
+     * @param str string to be filtered
+     * @return a string without non-alpha characters
+     */
+    inline std::string get_alpha(const std::string& str){
+        std::string ret;
+        std::copy_if(str.cbegin(), str.cend(), std::back_inserter(ret), (int(*)(int))std::isalpha);
+        return ret;
+    }
+
+    /* remove invalid sequence characters from a string
+     * @param str string to be filtered
+     */
+    inline void get_valid(std::string& str, bool upper = false){
+        size_t total = 0;
+        for(size_t i = 0; i < str.size(); ++i){
+            if(std::isalpha(str[i]) || str[i] == '-' || str[i] == '*'){
+                str[total++] = (upper ? std::toupper(str[i]) : str[i]);
+            }
+        }
+        str.resize(total);
+    }
+
+    /* make a string each character uppercased
+     * @param str string to be uppercased
+     */
+    inline void str2upper(std::string& str){
+        std::transform(str.begin(), str.end(), str.begin(), (int (*)(int))std::toupper);
+    }
+
+    /* make a string each character lowercased
+     * @param str string to be lowercased
+     */
+    inline void str2lower(std::string& str){
+        std::transform(str.begin(), str.end(), str.begin(), (int (*)(int))std::tolower);
+    }
+
+    /* get hamming distance of two strings
+     * @param str1 string 1
+     * @param str2 string 2
+     * @return hamming distance of string 1 and string 2
+     */
+    inline int hamming(const std::string& str1, const std::string& str2){
+        int diff = std::abs((int)(str1.size() - str2.size()));
+        for(int i = 0; i < std::min(str1.size(), str2.size()); ++i){
+            diff += (str1[i] == str2[i] ? 0 : 1);
+        }
+        return diff;
+    }
+
+    /* convert number to 33 based score character
+     * @param num number of score
+     * @return 33 based score character
+     */
+    inline char num2qual(int num){
+        if(num > 127 - 33){
+            num = 127 - 33;
+        }
+        if(num < 0){
+            num = 0;
+        }
+        char c = num + 33;
+        return c;
+    }
+
+    /* exit and print string to std::cerr
+     * @param msg string to print to std::cerr
+     */
+    inline void error_exit(const std::string& msg){
+        std::cerr << "ERROR: " << msg << std::endl;
+        exit(-1);
     }
 }
 

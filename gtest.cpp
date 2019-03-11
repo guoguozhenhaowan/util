@@ -167,15 +167,60 @@ TEST(util, isdir){
     EXPECT_TRUE(util::isdir("./"));
     EXPECT_TRUE(util::isdir("/Users/wood/Documents/"));
     EXPECT_FALSE(util::isdir("./a.out"));
-    EXPECT_FALSE(util::isdir("./fuck"));
+    EXPECT_FALSE(util::isdir("/fuck"));
 }
 
 // test util::makedir
 TEST(util, makedir){
     EXPECT_TRUE(util::makedir("./"));
     EXPECT_TRUE(util::makedir("./fuck/shit/jj"));
-    EXPECT_TRUE(util::makedir("~/hello/litty/jj"));
     EXPECT_FALSE(util::makedir("/fuck/shit"));
+}
+
+// test util::get_alpha
+TEST(util, get_alpha){
+    EXPECT_EQ(util::get_alpha("fuck_hel3 9efk"), "fuckhelefk");
+    EXPECT_EQ(util::get_alpha(""), "");
+    EXPECT_EQ(util::get_alpha(" \t"), "");
+}
+
+// test util::get_valid
+TEST(util, get_valid){
+    std::string s1 = "fuck * f-ka123";
+    util::get_valid(s1);
+    EXPECT_EQ(s1, "fuck*f-ka");
+    std::string s2 = " ";
+    util::get_valid(s2);
+    EXPECT_EQ(s2, "");
+}
+
+// test util::str2upper
+TEST(util, str2upper){
+    std::string s1 = "fuck*Kh2";
+    util::str2upper(s1);
+    EXPECT_EQ(s1, "FUCK*KH2");
+}
+
+// test util::str2lower
+TEST(util, str2lower){
+    std::string s1 = "FkfewU-32Uks";
+    util::str2lower(s1);
+    EXPECT_EQ(s1, "fkfewu-32uks");
+}
+
+// test util::hamming
+TEST(util, hamming){
+    EXPECT_EQ(util::hamming("fuck", "shit"), 4);
+    EXPECT_EQ(util::hamming("abbc", "abdde"), 3);
+}
+
+// test util::num2qual
+TEST(util, num2qual){
+    EXPECT_EQ(util::num2qual(-2), 33);
+    EXPECT_EQ(util::num2qual(0), 33);
+    EXPECT_EQ(util::num2qual(95), 127);
+    EXPECT_EQ(util::num2qual(94), 127);
+    EXPECT_EQ(util::num2qual(30), 63);
 }
 
 int main(int argc, char** argv){
