@@ -111,8 +111,74 @@ TEST(util, replace){
     EXPECT_EQ(util::replace(s5, " ", "u"), "");
 }
 
+// test util::basename
+TEST(util, basename){
+    std::string s1("fuck");
+    std::string s2(".///fuck");
+    std::string s3("./");
+    std::string s4("/fuck//shit/hello///");
+    std::string s5("/fuck/shit/kao");
+    std::string s6("/fuck///");
+    std::string s7(" ");
+
+    EXPECT_EQ(util::basename(s1), s1);
+    EXPECT_EQ(util::basename(s2), "fuck");
+    EXPECT_EQ(util::basename(s3), ".");
+    EXPECT_EQ(util::basename(s4), "hello");
+    EXPECT_EQ(util::basename(s5), "kao");
+    EXPECT_EQ(util::basename(s6), "fuck");
+    EXPECT_EQ(util::basename(s7), "");
+}
+
+// test util::dirname
+TEST(util, dirname){
+    std::string s1("fuck");
+    std::string s2(".///fuck");
+    std::string s3("./");
+    std::string s4("/fuck//shit/hello///");
+    std::string s5("/fuck/shit/kao");
+    std::string s6("/fuck///");
+    std::string s7(" ");
+
+    EXPECT_EQ(util::dirname(s1), "./");
+    EXPECT_EQ(util::dirname(s2), ".///");
+    EXPECT_EQ(util::dirname(s3), "./");
+    EXPECT_EQ(util::dirname(s4), "/fuck//shit/");
+    EXPECT_EQ(util::dirname(s5), "/fuck/shit/");
+    EXPECT_EQ(util::dirname(s6), "/");
+    EXPECT_EQ(util::dirname(s7), "./");
+}
+
+// test util::joinpath
+TEST(util, joinpath){
+    EXPECT_EQ(util::joinpath("/fuck", "hello"), "/fuck/hello");
+    EXPECT_EQ(util::joinpath("./", "fuck"), ".//fuck");
+}
+
+// test util::isfile
+TEST(util, isfile){
+    EXPECT_TRUE(util::isfile("./util.h"));
+    EXPECT_FALSE(util::isfile("./fuck"));
+    EXPECT_FALSE(util::isfile("/Users/wood/"));
+}
+
+// test util::isdir
+TEST(util, isdir){
+    EXPECT_TRUE(util::isdir("./"));
+    EXPECT_TRUE(util::isdir("/Users/wood/Documents/"));
+    EXPECT_FALSE(util::isdir("./a.out"));
+    EXPECT_FALSE(util::isdir("./fuck"));
+}
+
+// test util::makedir
+TEST(util, makedir){
+    EXPECT_TRUE(util::makedir("./"));
+    EXPECT_TRUE(util::makedir("./fuck/shit/jj"));
+    EXPECT_TRUE(util::makedir("~/hello/litty/jj"));
+    EXPECT_FALSE(util::makedir("/fuck/shit"));
+}
+
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
