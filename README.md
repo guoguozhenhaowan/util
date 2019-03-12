@@ -19,4 +19,7 @@ utilities
 |[gtseq.cpp](./gtseq.cpp)|google test for [seq.h](./seq.h)|
 |[read.h](./read.h)|Read and ReadPair class to represent fastq record|
 |[read.cpp](./read.cpp)|implementation of some functions in [read.h](./read.h)|
-|[gtread.cpp](./gtread.cpp)|google test for [read.h](./read.h)|  
+|[gtread.cpp](./gtread.cpp)|google test for [read.h](./read.h)|
+|[fqreader.h](./fqreader.h)|FqReader and FqReaderPair class to read fastq/pair|
+|[fqreader.cpp](./fqreader.cpp)|implementation of some functions in [fqreader.h](./fqreader.h)|
+|[gtfqreader.cpp](./gtfqreader.cpp)|google test for [fqreader.h](./fqreader.h)|
