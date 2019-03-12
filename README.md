@@ -14,4 +14,9 @@ utilities
 |[CLI.hpp](./CLI.hpp)|recode from https://github.com/CLIUtils/CLI11|
 |[dirutil.h](./dirutil.h)|recode from https://github.com/gpakosz/whereami|
 |[util.h](./util.h)|useful functions|
-|[gtest.cpp](./gtest.cpp)|google test fuctions|
+|[gtutil.cpp](./gtutil.cpp)|google test for util.h|
+|[seq.h](./seq.h)|Seq class to represent a nucleotide sequence| 
+|[gtseq.cpp](./gtseq.cpp)|google test for seq.h|
+|[read.h](./read.h)|Read and ReadPair class to represent fastq record|
+|[read.cpp](./read.cpp)|implementation of some functions in [read.h](./read.h)|
+|[gtread.cpp](./gtread.cpp)|google test for read.h|  
