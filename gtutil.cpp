@@ -223,6 +223,20 @@ TEST(util, num2qual){
     EXPECT_EQ(util::num2qual(30), 63);
 }
 
+// test util::complement
+TEST(util, complement){
+    EXPECT_EQ(util::complement('a'), 'T');
+    EXPECT_EQ(util::complement('A'), 'T');
+    EXPECT_EQ(util::complement('t'), 'A');
+    EXPECT_EQ(util::complement('T'), 'A');
+    EXPECT_EQ(util::complement('c'), 'G');
+    EXPECT_EQ(util::complement('C'), 'G');
+    EXPECT_EQ(util::complement('g'), 'C');
+    EXPECT_EQ(util::complement('G'), 'C');
+    EXPECT_EQ(util::complement('n'), 'N');
+    EXPECT_EQ(util::complement('X'), 'N');
+}
+
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

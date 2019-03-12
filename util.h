@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 
 namespace util{
-
     /** whether a string starts with some substring
      * @param str whole string
      * @param pre substring
@@ -349,6 +348,25 @@ namespace util{
     inline void error_exit(const std::string& msg){
         std::cerr << "ERROR: " << msg << std::endl;
         exit(-1);
+    }
+
+    /* get complement base of a nucleotide base
+     * @param base nucleotide base character
+     * @return the uppercased complementary nucleotide base
+     */
+    inline char complement(char base){
+        switch(base){
+            case 'A': case 'a':
+                return 'T';
+            case 'T': case 't':
+                return 'A';
+            case 'C': case 'c':
+                return 'G';
+            case 'G': case 'g':
+                return 'C';
+            default:
+                return 'N';
+        }
     }
 }
 
