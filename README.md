@@ -4,11 +4,10 @@ utilities
 |---------|-----------
 |[ascii.characters.for.table](./ascii.characters.for.table)|ascii code for table drawing
 |[ATCG.Binary](./ATCG.Binary)|Nucleotides to binary bits
-|[getTrs.py](./getTrs.py)|get transcript fasta from genome
-|[queryLib.py](./queryLib.py)|fq library cruder
 
 |Scripts|Functions
 |-------|---------
+|[getTrs.py](./getTrs.py)|get transcript fasta from genome
 |[getCDSBed.py](./getCDSBed.py)|get CDS bed region in genome
 |[getGenBank.py](./getGenBank.py)|get genbank file of each transcript
 |[queryLib.py](./queryLib.py)|fq library cruder|  
