@@ -100,7 +100,7 @@ def updateDic(fileList, dicFile):
         libName = os.path.basename(fileName)
         sampleName = libName.split('_')[0]
         sampList.append(sampleName)
-        if not sampleName in fileDic.keys():
+        if not sampleName in dicKeys:
             fileDic[sampleName] = [fileName]
             needUpdate = True
         else:
@@ -186,21 +186,12 @@ def parseSpList(sampleList):
             sfdic[SampleName].add(FlowCell)
     return sfdic
 
-def regularyUpdate(libPath, dirLog, timeInterval, fileExt, threadNo, dicFile):
+def regularyUpdate(libPath, blackList, dirLog, timeInterval, fileExt, threadNo, dicFile):
     """Regulary update database every timeInterval seconds"""
     updateLog = "{0}.upd.log".format(dicFile)
     while True:
-        time.sleep(timeInterval)
-        pathList = []
-        nowTime = time.time()
-        for dirName in os.listdir(libPath):
-            pdir = os.path.join(libPath, dirName)
-            if os.sccess(pdir, os.R_OK) and abs(nowTime, os.path.getmtime(pdir)) < 2 * timeInterval:
-                for subDirName in os.listdir(pdir):
-                    pSubDir = os.path.join(pdir, subDirName)
-                    if os.access(pdir, os.R_OK) and abs(nowTime, os.path.getmtime(pSubDir)) < 2 * timeInterval:
-                        pathList.append(pSubDir)
-        pathList = sorted(set(pathList))
+        time.sleep(3600)
+        pathList = getModFileDir(libPath, blackList, timeInterval)
         if len(pathList) > 0:
             fw = open(updateLog, 'a')
             for pathName in pathList:
@@ -210,20 +201,20 @@ def regularyUpdate(libPath, dirLog, timeInterval, fileExt, threadNo, dicFile):
             updateDic(fileList, dicFile)
     return None
 
-def forceUpdate(libPath, fileExt, threadNo, dicFile):
+def forceUpdate(libPath, blackList, fileExt, threadNo, dicFile):
     """Force update specific lirary path"""
-    dir3List = iniFileDir(libPath)
+    dir3List = iniFileDir(libPath, blackList)
     fileList = paraWalkDir(dir3List, fileExt, threadNo)
     updateDic(fileList, dicFile)
     return None
 
-def iniFileDir(fqPath):
+def iniFileDir(fqPath, blackList):
     """ get directory path up to level 3 depth"""
     dirSet = set()
     dir1list = []
     for dirName in os.listdir(fqPath):
-        pdir = os.path.join(fqPath, dirName)
-        if os.path.isdir(pdir) and (not os.path.islink(pdir)) and os.access(pdir, os.R_OK):
+        pdir = os.path.abspath(os.path.join(fqPath, dirName))
+        if (not pdir in blackList) and os.path.isdir(pdir) and (not os.path.islink(pdir)) and os.access(pdir, os.R_OK):
             dir1list.append(pdir)
    
     dir2list = []
@@ -245,13 +236,43 @@ def iniFileDir(fqPath):
                 dirSet.add(pdir)
     return list(dirSet)
 
+def getModFileDir(fqPath, blackList, timeInterval):
+    """ get directory path up to level 3 depth"""
+    dirSet = set()
+    dir1list = []
+    for dirName in os.listdir(fqPath):
+        pdir = os.path.abspath(os.path.join(fqPath, dirName))
+        if (not pdir in blackList) and os.path.isdir(pdir) and (not os.path.islink(pdir)) and os.access(pdir, os.R_OK):
+            dir1list.append(pdir)
+   
+    dir2list = []
+    for pdir in dir1list:
+        for dir2 in os.listdir(pdir):
+            pdir2 = os.path.join(pdir, dir2)
+            if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
+                dir2list.append(pdir2)
+            if (not os.path.isdir(pdir2)) and pdir2.endswith("clean.fastq.gz") and abs(time.time() - os.path.getatime(pdir2)) < timeInterval:
+                dirSet.add(pdir)
+    
+    dir3list = []
+    for pdir in dir2list:
+        for dir3 in os.listdir(pdir):
+            pdir3 = os.path.join(pdir, dir3)
+            if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK) and abs(time.time() - os.path.getatime(pdir3)) < timeInterval:
+                dirSet.add(pdir3)
+            if (not os.path.isdir(pdir3)) and pdir3.endswith("clean.fastq.gz") and abs(time.time() - os.path.getatime(pdir3)) < timeInterval:
+                dirSet.add(pdir)
+    return list(dirSet)
+
 def main():
     """main function to accept arguments"""
     fqPath = "/share/seq_dir/ngs/"
     dicFile = "/home/wulj/database/queryLibDB/queryLibDB.json"
+    blackList = ["/share/seq_dir/ngs/Runs", "/share/seq_dir/ngs/qc"]
+
     fileExt = "clean.fastq.gz"
     threadNo = 10
-    timeInterval = 3600
+    timeInterval = 36000
     userName = getpass.getuser()
     
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=SmartFormatter)
@@ -260,7 +281,7 @@ def main():
     parser.add_argument('-t', '--jobtype', help = textwrap.dedent("R|Job type(q for query, c for create, u for update, s for summary) \ndefault: q"), required = False)
     parser.add_argument('-d', '--database', help = textwrap.dedent("R|Database file to create, update or query \ndefault: {0}".format(dicFile)), required = False)
     parser.add_argument('-f', '--fqpath', help = textwrap.dedent("R|Fastq path to create/update database \ndefault: {0}".format(fqPath)), required = False)
-    parser.add_argument('-c', '--force', help = textwrap.dedent("R|Force update database"), required = False)
+    parser.add_argument('-c', '--force', help = textwrap.dedent("R|Force update database"), action = 'store_true')
     parser.add_argument('-g', '--libpatterns', help = textwrap.dedent("R|Library patterns to match in querying, seperated by comma \ndefault: *"), required = False)
     parser.add_argument('-p', '--thread', help = "R|Thread number used to create/update database \ndefault: {0}".format(threadNo), required = False)
     args = parser.parse_args()
@@ -323,7 +344,7 @@ def main():
             sys.exit(1)
         if args.thread != None:
             threadNo = int(args.thread)
-        dirList = iniFileDir(fqPath)
+        dirList = iniFileDir(fqPath, blackList)
         fw = open("{0}.dir.log".format(dicFile), 'w')
         for dirName in dirList:
             fw.write("{0}\n".format(dirName))
@@ -348,9 +369,9 @@ def main():
             sys.exit(1)
         dirLog = "{0}.dir.log".format(dicFile)
         if args.force:
-            forceUpdate(fqPath, dirLog, fileExt, threadNo, dicFile)
+            forceUpdate(fqPath, blackList, fileExt, threadNo, dicFile)
         else:
-            regularyUpdate(fqPath, dirLog, timeInterval, fileExt, threadNo, dicFile)
+            regularyUpdate(fqPath, blackList, dirLog, timeInterval, fileExt, threadNo, dicFile)
     else:
         if args.database != None:
             dicFile = os.path.abspath(args.database)
