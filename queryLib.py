@@ -267,7 +267,7 @@ def getModFileDir(fqPath, blackList, timeInterval):
 def main():
     """main function to accept arguments"""
     fqPath = "/share/seq_dir/ngs/"
-    dicFile = "/home/wulj/database/queryLibDB/queryLibDB.json"
+    dicFile = "/share/work1/wulj/database/queryLibDB/queryLibDB.json"
     blackList = ["/share/seq_dir/ngs/Runs", "/share/seq_dir/ngs/qc"]
 
     fileExt = "clean.fastq.gz"
@@ -278,7 +278,7 @@ def main():
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=SmartFormatter)
     parser.add_argument('-i', '--splist', help = textwrap.dedent("sample list, SampleName~FlowCell~..."), required = False)
     parser.add_argument('-o', '--outdir', help = textwrap.dedent("R|Output directory to put query log \ndefault: {0}".format(os.getcwd())), required = False)
-    parser.add_argument('-t', '--jobtype', help = textwrap.dedent("R|Job type(q for query, c for create, u for update, s for summary) \ndefault: q"), required = False)
+    parser.add_argument('-t', '--jobtype', help = textwrap.dedent("R|Job type(q for query, c for create, u for update) \ndefault: q"), required = False)
     parser.add_argument('-d', '--database', help = textwrap.dedent("R|Database file to create, update or query \ndefault: {0}".format(dicFile)), required = False)
     parser.add_argument('-f', '--fqpath', help = textwrap.dedent("R|Fastq path to create/update database \ndefault: {0}".format(fqPath)), required = False)
     parser.add_argument('-c', '--force', help = textwrap.dedent("R|Force update database"), action = 'store_true')

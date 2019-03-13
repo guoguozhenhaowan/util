@@ -23,3 +23,4 @@ utilities
 |[fqreader.h](./fqreader.h)|FqReader and FqReaderPair class to read fastq/pair|
 |[fqreader.cpp](./fqreader.cpp)|implementation of some functions in [fqreader.h](./fqreader.h)|
 |[gtfqreader.cpp](./gtfqreader.cpp)|google test for [fqreader.h](./fqreader.h)|
+|[queryLib.py](./queryLib.py)|fq library cruder|
