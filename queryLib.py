@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import re
@@ -108,7 +108,7 @@ def updateDic(fileList, dicFile):
                 fileDic[sampleName].append(fileName)
                 needUpdate = True
         if needUpdate:
-            recList.append(sampleName)
+            recList.append(fileName)
     fwd = open("{0}.del.log".format(dicFile), 'a')
     for sampleName in sampList:
         delLib = []
