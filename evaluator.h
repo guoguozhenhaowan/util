@@ -42,7 +42,7 @@ class Evaluator{
          * @param trim cycles to trim from end(3') before evaluate adaptors
          * @return estimated adapter sequences if successful
          */
-        std::string evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t trim);
+        std::string evalAdapterAndReadNum(size_t& readNum, bool isR2, int trim);
         
         /** Test whether the read is sequenced from a TwoColorSystem machine
          * @return true if read name starts with "\@NS", "\@NB" or "\@A0"
@@ -81,7 +81,7 @@ class Evaluator{
          * @param seq a nucleotide sequence(may generated from NeucleotideTree)
          * @return matched adapter sequence if successfuly or "" if failed
          */
-        static std::string matchKnownAdapter(std::string& seq);
+        static std::string matchKnownAdapter(const std::string& seq);
     
     public:
         /** Convert a size_t value back into a string consists of ATCG with length seqLen
@@ -115,7 +115,7 @@ class Evaluator{
          * @param trim trim length of read from 3' end
          * @return adapter sequence detected
          */
-        std::string getAdapterWithSeed(int seed, Read** loadedReads, size_t records, int keyLen, int trim);
+        std::string getAdapterWithSeed(int seed, Read** loadedReads, long records, int keyLen, int trim);
 };
 
 #endif

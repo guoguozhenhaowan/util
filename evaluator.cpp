@@ -127,8 +127,7 @@ void Evaluator::computeOverRepSeq(const std::string& filename, std::map<std::str
         rlen = r->length();
         bases += rlen;
         ++records;
-        for(auto& s: steps){
-            int step = steps[s];
+        for(auto& step: steps){
             for(int i = 0; i < rlen - step; ++i){
                 seq = r->seq.seqStr.substr(i, step);
                 if(seqCounts.count(seq) > 0){
@@ -218,7 +217,7 @@ void Evaluator::evaluateReadNum(size_t& readNum){
     }
 }
 
-std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t trim){
+std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, int trim){
     std::string filename = (isR2 ? this->r2File : this->r1File);
     FqReader fqr(filename);
     const size_t READ_LIMIT = 256 * 1024;
@@ -269,13 +268,13 @@ std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t 
     }
     
     // shit the last cycle(s) for evaluation since it is so noisy, especially for illumina data
-    const size_t shiftTail = std::max(1, trim);
-    const size_t keylen = 10;
+    const int shiftTail = std::max(1, trim);
+    const int keylen = 10;
     size_t size = 1 << (keylen * 2);
     size_t* counts = new size_t[size];
     std::memset(counts, 0, sizeof(size_t) * size);
     Read* r = NULL;
-    int k = -1;
+    int key = -1;
     for(size_t i = 0; i < records; ++i){
         r = loadedReads[i];
         const char* data = r->seq.seqStr.c_str();
@@ -293,11 +292,10 @@ std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t 
     const int topnum = 10;
     int topkeys[topnum] = {0};
     size_t total = 0;
-    int atcg[4] = {0};
     int baseOfBit = 0;
     bool lowComplexity = false;
     for(size_t k = 0; k < size; ++k){
-        atcg[4] = {0};
+        int atcg[4] = {0};
         for(size_t i = 0; i < keylen; ++i){
             baseOfBit = (k >> (i * 2)) & 0x03;
             ++atcg[baseOfBit];
@@ -358,7 +356,7 @@ std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t 
         }
         // skip low complexity seq, this may not be needed as low complexity tested before contains this
         int diff = 0;
-        for(int s = 0; s < seq.length - 1; ++s){
+        for(int s = 0; s < seq.length() - 1; ++s){
             if(seq[s] != seq[s+1]){
                 ++diff;
             }
@@ -366,7 +364,7 @@ std::string Evaluator::evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t 
         if(diff < 3){
             continue;
         }
-        std::string adapter = this->getAdapterWithSeed(key, loadedReads, records, keylen);
+        std::string adapter = this->getAdapterWithSeed(key, loadedReads, records, keylen, trim);
         if(!adapter.empty()){
             delete[] counts;
             for(int r = 0; r < records; ++r){
@@ -417,7 +415,7 @@ std::string Evaluator::getAdapterWithSeed(int seed, Read** loadedReads, long rec
         return matchedAdapter;
     }else{
         if(reachedLeaf){
-            std::cerr << adapter << endl;
+            std::cerr << adapter << std::endl;
             return adapter;
         }else{
             return "";
@@ -425,7 +423,7 @@ std::string Evaluator::getAdapterWithSeed(int seed, Read** loadedReads, long rec
     }
 }
 
-std::string Evaluator::matchKnownAdapter(std::string seq){
+std::string Evaluator::matchKnownAdapter(const std::string& seq){
     std::map<std::string, std::string> knownAdapters = ::getKnownAdapter();
     std::map<std::string, std::string>::iterator iter;
     for(iter = knownAdapters.begin(); iter != knownAdapters.end(); ++iter) {
