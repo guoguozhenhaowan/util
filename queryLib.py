@@ -93,13 +93,12 @@ def updateDic(fileList, dicFile):
     fileDic = json.load(fr)
     fr.close()
     dicKeys = fileDic.keys()
+    # check for new values needed to inserted
     recList = []
-    sampList = []
-    needUpdate = False
     for fileName in fileList:
+        needUpdate = False
         libName = os.path.basename(fileName)
         sampleName = libName.split('_')[0]
-        sampList.append(sampleName)
         if not sampleName in dicKeys:
             fileDic[sampleName] = [fileName]
             needUpdate = True
@@ -109,26 +108,25 @@ def updateDic(fileList, dicFile):
                 needUpdate = True
         if needUpdate:
             recList.append(fileName)
-    fwd = open("{0}.del.log".format(dicFile), 'a')
-    for sampleName in sampList:
-        delLib = []
+    if len(recList) >= 1:
+        fwl = open("{0}.rec.log".format(dicFile), 'a')
+        fwl.write("{0}\n".format("\n".join(recList)))
+        fwl.close();
+    # check for old values needed to be removed
+    delLib = []
+    for sampleName in dicKeys:
         oriLen = len(fileDic[sampleName])
-        delLib = [libPath for libPath in fileDic[sampleName] if not os.access(libPath, os.F_OK)]
+        delLib.extend([libPath for libPath in fileDic[sampleName] if not os.access(libPath, os.F_OK)])
         fileDic[sampleName] = [libPath for libPath in fileDic[sampleName] if os.access(libPath, os.F_OK)]
         modLen = len(fileDic[sampleName])
         if modLen == 0:
             tmpKey = fileDic.pop(sampleName)
-            needUpdate = True
-        if oriLen != modLen:
-            needUpdate = True
-        if len(delLib) >= 1:
-            fwd.write("{0}\n{1}\n".format(sampleName, "\n".join(delLib)))
-    fwd.close()
-    if needUpdate:
-        fwl = open("{0}.rec.log".format(dicFile), 'a')
-        for dirRec in recList:
-            fwl.write("{0}\n".format(dirRec))
-        fwl.close()
+    if len(delLib) >= 1:
+        fwd = open("{0}.del.log".format(dicFile), 'a')
+        fwd.write("{0}\n{1}\n".format(sampleName, "\n".join(delLib)))
+        fwd.close()
+    # update json database file
+    if len(recList) > 0 or len(delLib) > 0:
         newDicFile = "{0}.new".format(dicFile)
         fw = open(newDicFile, 'w')
         json.dump(fileDic, fw)
