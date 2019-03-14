@@ -44,12 +44,26 @@ namespace genrpt{
     void get_fratio(genrpt::stats& s, const genrpt::args& a);
     double get_rratio(const std::string& filtlog);
     void gen_finarpt(const genrpt::stats& s, const genrpt::args& a);
-    void split_line(std::vector<std::string>& v, const std::string& str, const char& sep){
-        v.clear();
-        std::stringstream ss(str);
-        std::string tmpstr;
-        while(std::getline(ss, tmpstr, sep)){
-            v.push_back(tmpstr);
+    inline bool starts_with(const std::string& str, const std::string& pre){
+        if(str.length() < pre.length()){
+            return false;
+        }else{
+            return std::equal(pre.begin(), pre.end(), str.begin());
+        }
+    }
+    inline void split_line(std::vector<std::string>& vec, const std::string& str, std::string sep = " "){
+        vec.clear();
+        std::string::size_type las, cur;
+        las = cur = str.find_first_not_of(sep);
+        while((las = str.find_first_not_of(sep, las)) != std::string::npos){
+            cur = str.find_first_of(sep, las);
+            if(cur != std::string::npos){
+                vec.push_back(str.substr(las, cur - las));
+            }else{
+                vec.push_back(str.substr(las));
+                break;
+            }
+            las = cur;
         }
     }
 }
@@ -108,7 +122,7 @@ void genrpt::get_exp(genrpt::stats& s, const genrpt::args& a){
     std::vector<std::string> giset;
     std::vector<std::string> vsg;
     while(std::getline(ss3, line)){
-        genrpt::split_line(vsg, line, '\t');
+        genrpt::split_line(vsg, line, "\t");
         gene = vsg[0];
         if(s.gout.find(gene) != s.gout.end()){
             s.gexp[gene] = s.gout[gene];
@@ -134,7 +148,7 @@ void genrpt::get_fratio(genrpt::stats& s, const genrpt::args& a){
     size_t ttreads;
     std::vector<std::string> vs;
     while(std::getline(ss1, line)){
-        genrpt::split_line(vs, line, '\t');
+        genrpt::split_line(vs, line, "\t");
         tpair.first = vs[0];
         tpair.second = vs[1];
         if(tpair.first == "Total Reads"){
@@ -145,7 +159,7 @@ void genrpt::get_fratio(genrpt::stats& s, const genrpt::args& a){
     std::getline(ss2, line);
     std::vector<size_t> vpos = {0};
     while(std::getline(ss2, line)){
-        genrpt::split_line(vs, line, '\t');
+        genrpt::split_line(vs, line, "\t");
         std::string seedc = vs[2];
         std::string resuc = vs[3];
         s.rfusion += std::atof(seedc.c_str()) + std::atof(resuc.c_str());
@@ -159,8 +173,8 @@ double genrpt::get_rratio(const std::string& filtlog){
     std::vector<std::string> vs;
     std::stringstream ss;
     while(std::getline(fr, line)){
-        if(line[0] == '%'){
-            genrpt::split_line(vs, line, ' ');
+        if(genrpt::starts_with(line, "in db ratio")){
+            genrpt::split_line(vs, line, " ");
             suffix = vs[vs.size() - 1];
             return(std::atof(suffix.c_str()));
         }
@@ -253,7 +267,7 @@ void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
     std::vector<std::string> vrec;
     fr.open(a.fusionrpt.c_str());
     std::getline(fr, line);
-    genrpt::split_line(vrec, line, '\t');
+    genrpt::split_line(vrec, line, "\t");
     for(size_t i = 0; i < vrec.size(); ++i){
         vclen.push_back(vrec[i].length());
         worksheet_write_string(sheet, row, col++, vrec[i].c_str(), NULL);
@@ -261,7 +275,7 @@ void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
     while(std::getline(fr, line)){
         ++row;
         col = 0;
-        genrpt::split_line(vrec, line, '\t');
+        genrpt::split_line(vrec, line, "\t");
         for(size_t i = 0; i < vrec.size(); ++i){
             vclen[i] = std::max(vclen[i], vrec[i].length());
             worksheet_write_string(sheet, row, col++, vrec[i].c_str(), NULL);
