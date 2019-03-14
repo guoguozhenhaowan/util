@@ -51,7 +51,7 @@ class NucleotideTree{
          * a dominant path will return only if each node in the path has at least total 50 nucleotides
          * and a single base dominate more than 0.95 nucleotides at this node, this 
          * base is the common base at this position then
-         * @param reachedLeaf, no dominant path found, and haven't reach the leaf
+         * @param reachedLeaf no dominant path found, and haven't reach the leaf
          * @return the longest dominant path if exists
          */
         std::string getDominantPath(bool& reachedLeaf);

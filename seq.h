@@ -6,21 +6,21 @@
 #include <cstdlib>
 #include <iostream>
 
-// representation of a nucleotide sequence
+/** class to represent a nucleotide sequence */
 class Seq{
     public:
-        // default constructor
+        /** default constructor */
         Seq() = default;
         
-        // construct a Seq object with a sequence s
+        /** construct a Seq object with a sequence s */
         Seq(const std::string& s) : seqStr(s){ }
         
-        // get the length of this Seq object
+        /** get the length of this Seq object */
         inline int length(){
             return seqStr.length();
         }
         
-        // get the reverse complementary Seq object 
+        /** get the reverse complementary Seq object */
         inline Seq reverseComplement(){
             std::string rstr(seqStr.length(), 0);
             char chc = '\0';
@@ -47,20 +47,22 @@ class Seq{
             return Seq(rstr);
         }
         
-        // output Seq to ostream
+        /** output Seq to ostream
+         * @param os std::ostream object
+         * @param s Seq object
+         */
         friend inline std::ostream& operator<<(std::ostream& os, const Seq& s){
             os << s.seqStr;
             return os;
         }
         
-        // operator to get the reverse complement Seq object
+        /** operator to get the reverse complement Seq object */
         inline Seq operator~(){
             return this->reverseComplement();
         }
 
     public:
-        // store the sequence
-        std::string seqStr;
+        std::string seqStr; ///< store the nucleotide sequence
 };
 
 #endif

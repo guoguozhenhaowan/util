@@ -95,7 +95,7 @@ class Read{
             return new Read(name, rseq, rstrand, rqual);
         }
 
-        /** readname example:@A00403:136:HFMYWDSXX:2:1101:7672:1000 1:N:0:GAGAGGCA+GAGAGGC
+        /** readname example '\@A00403:136:HFMYWDSXX:2:1101:7672:1000 1:N:0:GAGAGGCA+GAGAGGC'
          * get the first index of a Read in the Read name
          * @return first index of Read with two index or just the index of Read
          */
