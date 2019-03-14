@@ -24,7 +24,7 @@ class SmartFormatter(argparse.HelpFormatter):
         return argparse.HelpFormatter._split_lines(self, text, width)
 
 def walkOneDir(workDir, fileExt):
-    """Generates a list of all the file under workDir with fileExt as extention"""
+    """Generates a list of all the files under workDir with fileExt as extention"""
     fileList = []
     filePattern = "*" + '.' + fileExt
     for pathName, dirName, fileNameList in os.walk(workDir):
@@ -79,8 +79,7 @@ def makeFileDic(fileList, dicFile):
         recList.append(fileName)
     recList = sorted(set(recList))
     fwl = open("{0}.rec.log".format(dicFile), 'w')
-    for dirRec in recList:
-        fwl.write("{0}\n".format(dirRec))
+    fwl.write("{0}\n".format("\n".join(recList)))
     fwl.close()
     fw = open(dicFile, 'w')
     json.dump(fileDic, fw)
@@ -186,14 +185,14 @@ def parseSpList(sampleList):
 
 def regularyUpdate(libPath, blackList, dirLog, timeInterval, fileExt, threadNo, dicFile):
     """Regulary update database every timeInterval seconds"""
-    updateLog = "{0}.upd.log".format(dicFile)
     while True:
         time.sleep(3600)
         pathList = getModFileDir(libPath, blackList, timeInterval)
         if len(pathList) > 0:
-            fw = open(updateLog, 'a')
-            for pathName in pathList:
-                fw.write("update database @ {0} from {1}\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), pathName))
+            updateLog = "{0}.mup.log".format(dicFile)
+            fw = open(updateLog, 'w')
+            fw.write("paths may needed to be updated @ {0}:\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            fw.write("{0}\n".format("\n".join(pathList)))
             fw.close()
             fileList = paraWalkDir(pathList, fileExt, threadNo)
             updateDic(fileList, dicFile)
@@ -249,16 +248,16 @@ def getModFileDir(fqPath, blackList, timeInterval):
             pdir2 = os.path.join(pdir, dir2)
             if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
                 dir2list.append(pdir2)
-            if (not os.path.isdir(pdir2)) and pdir2.endswith("clean.fastq.gz") and abs(time.time() - os.path.getatime(pdir2)) < timeInterval:
+            if (not os.path.isdir(pdir2)) and pdir2.endswith("clean.fastq.gz") and abs(time.time() - os.path.getmtime(pdir2)) < timeInterval:
                 dirSet.add(pdir)
     
     dir3list = []
     for pdir in dir2list:
         for dir3 in os.listdir(pdir):
             pdir3 = os.path.join(pdir, dir3)
-            if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK) and abs(time.time() - os.path.getatime(pdir3)) < timeInterval:
+            if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK) and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
                 dirSet.add(pdir3)
-            if (not os.path.isdir(pdir3)) and pdir3.endswith("clean.fastq.gz") and abs(time.time() - os.path.getatime(pdir3)) < timeInterval:
+            if (not os.path.isdir(pdir3)) and pdir3.endswith("clean.fastq.gz") and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
                 dirSet.add(pdir)
     return list(dirSet)
 
@@ -344,8 +343,7 @@ def main():
             threadNo = int(args.thread)
         dirList = iniFileDir(fqPath, blackList)
         fw = open("{0}.dir.log".format(dicFile), 'w')
-        for dirName in dirList:
-            fw.write("{0}\n".format(dirName))
+        fw.write("{0}\n".format("\n".join(dirList)))
         fw.close()
         fileList = paraWalkDir(dirList, fileExt, threadNo)
         makeFileDic(fileList, dicFile)
