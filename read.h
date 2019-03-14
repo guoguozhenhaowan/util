@@ -9,20 +9,21 @@
 #include <sstream>
 #include <iostream>
 
+/** Class to represent a ngs read record */
 class Read{
     public:
-        std::string name;
-        Seq seq;
-        std::string strand;
-        std::string quality;
-        bool hasQuality;
+        std::string name;   ///< read name
+        Seq seq;            ///< read nucleotide sequence
+        std::string strand; ///< read strand
+        std::string quality;///< read quality sequence
+        bool hasQuality;    ///< read has quality sequence if true
 
     public:
-        /* default constructor of Read
+        /** default constructor of Read
          */
         Read() = default;
 
-        /* Read constructor
+        /** Read constructor
          * @param rname read name
          * @param rseq read sequence
          * @param rstrand read strand
@@ -36,7 +37,7 @@ class Read{
                 }
             }
         
-        /* Read constructor
+        /** Read constructor
          * @param rname read name
          * @param oseq Seq object
          * @param rstrand read strand
@@ -50,26 +51,26 @@ class Read{
                 }
             }
 
-        /* Read constructor
+        /** Read constructor
          * @param rname read name
          * @param oseq Seq object
          * @param rstrand read strand
          */
         Read(const std::string& rname, const Seq& oseq, const std::string& rstrand) :
             name(rname), seq(oseq), strand(rstrand), hasQuality(false){ }
-        /* Read constructor
+        /** Read constructor
          * @param r Read object
          */
         Read(const Read& r) : name(r.name), seq(r.seq), strand(r.strand), quality(r.quality), hasQuality(r.hasQuality){}
 
-        /* convert quality in phread64 based encoding into phread33 based encoding */
+        /** convert quality in phread64 based encoding into phread33 based encoding */
         inline void convertPhread64To33(){
             for(size_t i = 0; i < quality.length(); ++i){
                 quality[i] = std::max(33, quality[i] - (64 - 33));
             }
         }
 
-        /* output a Read object to std::ostream
+        /** output a Read object to std::ostream
          * @param os an std::ostream
          * @param r a Read object
          * @return os
@@ -84,7 +85,7 @@ class Read{
             return os;
         }
 
-        /* get a reverse complementary Read
+        /** get a reverse complementary Read
          * @return pointer to the complementary Read
          */
         inline Read* reverseComplement(){
@@ -94,7 +95,7 @@ class Read{
             return new Read(name, rseq, rstrand, rqual);
         }
 
-        /* readname example:@A00403:136:HFMYWDSXX:2:1101:7672:1000 1:N:0:GAGAGGCA+GAGAGGC
+        /** readname example:@A00403:136:HFMYWDSXX:2:1101:7672:1000 1:N:0:GAGAGGCA+GAGAGGC
          * get the first index of a Read in the Read name
          * @return first index of Read with two index or just the index of Read
          */
@@ -117,7 +118,7 @@ class Read{
             return "";
         }
 
-        /* get the last index of a Read in the Read name
+        /** get the last index of a Read in the Read name
          * @return last index of Read with two index or just the index of Read
          */
         inline std::string lastIndex(){
@@ -134,7 +135,7 @@ class Read{
             return "";
         }
 
-        /* count bases in a Read with quality lower than a threshold (0-based)
+        /** count bases in a Read with quality lower than a threshold (0-based)
          * @param lowQual threshold lower than it will be counted as low quality
          * @return number of bases with quality lower than lowQual
          */
@@ -148,21 +149,21 @@ class Read{
             return count;
         }
 
-        /* get the length of a Read
+        /** get the length of a Read
          * @return the length of the Read
          */
         inline int length(){
             return seq.length();
         }
 
-        /* convert a Read object to a string
+        /** convert a Read object to a string
          * @return a string representation of a Read
          */
         inline std::string toString(){
             return name + "\n" + seq.seqStr + "\n" + strand + "\n" + quality + "\n";
         }
         
-        /* resize a Read to specified length
+        /** resize a Read to specified length
          * @param len length
          */
         inline void resize(int len){
@@ -173,7 +174,7 @@ class Read{
             quality.resize(len);
         }
 
-        /* trim a Read from front (5')
+        /** trim a Read from front (5')
          * @param len length to be trimmed
          */
         inline void trimFront(int len){
@@ -183,14 +184,20 @@ class Read{
         }
 };
 
+/** class to represent a pair of read */
 class ReadPair{
     public:
-        Read* left;
-        Read* right;
+        Read* left; ///< Pointer to read1
+        Read* right;///< Pointer to read2
 
     public:
+        /** Default ReadPair Constructor */
         ReadPair() = default;
+        
+        /** Construct a ReadPair from read1/2 pointers */
         ReadPair(Read* rLeft, Read* rRight) : left(rLeft), right(rRight){}
+        
+        /** Destroy a ReadPair object */
         ~ReadPair(){
             if(left){
                 delete left;
@@ -202,7 +209,7 @@ class ReadPair{
             }
         }
 
-        /* merge a pair of Reads, ignore false indel caused by sequence error
+        /** merge a pair of Reads, ignore false indel caused by sequence error
          * @return merged Read
          */
         Read* merge();

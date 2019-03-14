@@ -277,7 +277,7 @@ namespace util{
         }
     }
 
-    /* remove non-alpha characters from a string
+    /** remove non-alpha characters from a string
      * @param str string to be filtered
      * @return a string without non-alpha characters
      */
@@ -287,7 +287,7 @@ namespace util{
         return ret;
     }
 
-    /* remove invalid sequence characters from a string
+    /** remove invalid sequence characters from a string
      * @param str string to be filtered
      */
     inline void get_valid(std::string& str, bool upper = false){
@@ -300,21 +300,21 @@ namespace util{
         str.resize(total);
     }
 
-    /* make a string each character uppercased
+    /** make a string each character uppercased
      * @param str string to be uppercased
      */
     inline void str2upper(std::string& str){
         std::transform(str.begin(), str.end(), str.begin(), (int (*)(int))std::toupper);
     }
 
-    /* make a string each character lowercased
+    /** make a string each character lowercased
      * @param str string to be lowercased
      */
     inline void str2lower(std::string& str){
         std::transform(str.begin(), str.end(), str.begin(), (int (*)(int))std::tolower);
     }
 
-    /* get hamming distance of two strings
+    /** get hamming distance of two strings
      * @param str1 string 1
      * @param str2 string 2
      * @return hamming distance of string 1 and string 2
@@ -327,7 +327,7 @@ namespace util{
         return diff;
     }
 
-    /* convert number to 33 based score character
+    /** convert number to 33 based score character
      * @param num number of score
      * @return 33 based score character
      */
@@ -342,7 +342,7 @@ namespace util{
         return c;
     }
 
-    /* exit and print string to std::cerr
+    /** exit and print string to std::cerr
      * @param msg string to print to std::cerr
      */
     inline void error_exit(const std::string& msg){
@@ -350,7 +350,7 @@ namespace util{
         exit(-1);
     }
 
-    /* get complement base of a nucleotide base
+    /** get complement base of a nucleotide base
      * @param base nucleotide base character
      * @return the uppercased complementary nucleotide base
      */
