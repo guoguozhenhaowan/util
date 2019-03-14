@@ -10,6 +10,8 @@
 #include "read.h"
 #include "util.h"
 #include "fqreader.h"
+#include "knownadapters.h"
+#include "nucleotidetree.h"
 
 /** class to hold various functions to evaluate sequence information */
 class Evaluator{
@@ -22,11 +24,25 @@ class Evaluator{
          * @param r2f read2 filename
          */
         Evaluator(const std::string& r1f, const std::string& r2f = "") : r1File(r1f), r2File(r2f){}
+        
+        /** Destroy a evaluator */
         ~Evaluator(){}
 
+        /** evaluate number of reads in fastq this->r1File 
+         * based on at most 512 * 1024 reads and at most 151 * 512 * 1024 bytes read
+         * @param readNum store the estimated reads number 
+         */
         void evaluateReadNum(size_t& readNum);
-        std::string evalAdapterAndReadNumDepreciated(size_t& readNum);
-        std::string evalAdapterAndReadNum(size_t& readNum, bool isR2);
+        
+        /** evaluate the total reads number of this->r1File or this->r2File 
+         * and the adapter sequences based on at most 256*1024 reads or 151 * 256 * 1024 bytes read in
+         * to estimate adapter sequence, there must be at least 10000 valid records read in
+         * @param readNum store the estimated reads number
+         * @param isR2 evaluate this->r2File if true
+         * @param trim cycles to trim from end(3') before evaluate adaptors
+         * @return estimated adapter sequences if successful
+         */
+        std::string evalAdapterAndReadNum(size_t& readNum, bool isR2, size_t trim);
         
         /** Test whether the read is sequenced from a TwoColorSystem machine
          * @return true if read name starts with "\@NS", "\@NB" or "\@A0"
@@ -58,12 +74,48 @@ class Evaluator{
          */
         int computeSeqLen(const std::string& filename);
 
+        /** Match a sequence seq agains known illumina adapters stored in knownadapters.h
+         * seq length must be equal or greater than the matched adapter 
+         * and match happens from index 0 between seq and adapter exactly to the end of adapter
+         * not any mismatch allowes 
+         * @param seq a nucleotide sequence(may generated from NeucleotideTree)
+         * @return matched adapter sequence if successfuly or "" if failed
+         */
         static std::string matchKnownAdapter(std::string& seq);
     
     public:
-        std::string int2seq(unsigned int val, int seqLen);
+        /** Convert a size_t value back into a string consists of ATCG with length seqLen
+         * @param val the encoded value of a nucleotide sequence
+         * @param seqLen the encoded nucleotide sequence length
+         * @return the nucleotide sequence of val encoded
+         */
+        std::string int2seq(size_t val, int seqLen);
+        
+        /** convert the substring started at pos to pos + seqLen - 1 of a string to int
+         * each 2 bits represents a nucleotide[A->00, T->01, C->10, G->11]
+         * from lowest bits to highest bits represent seq[pos + seqLen - 1] to seq[pos]
+         * if nucleotide other than ATCG occurs in this substring, -1 will return 
+         * this sliding window algorithm will have a complexity of o(n)
+         * @param seq the whole string
+         * @param pos ini position of substring of seq
+         * @param seqLen length of substring to be converted
+         * @param lastVal the int representation of  substring started at pos - 1 to pos + seqLen - 2 of string
+         * @return int representation of the substring started at pos to pos + seqLen - 1 of string seq, may be -1
+         */
         int seq2int(std::string& seq, int pos, int seqLen, int lastVal = -1);
-        std::string getAdapterWithSeed(int seed, Read** loadedReads, size_t records, int keyLen);
+
+        /** get adapter sequence from a seed sequence represented by keyLen bits int
+         * a seed sequence is a substring of read(trimed with trim) with length keyLen
+         * and its in the top10 counts(excluding low complexity, high GC, GGGG** seq, count < 10 
+         * or count < n * p ( n = FOLD_THRESHOLD, p = total/size) 
+         * @param seed int representation of the seed sequence
+         * @param loadedReads loaded Reads to get the seed 
+         * @param records number of Reads loaded
+         * @param keyLen length of subsquence
+         * @param trim trim length of read from 3' end
+         * @return adapter sequence detected
+         */
+        std::string getAdapterWithSeed(int seed, Read** loadedReads, size_t records, int keyLen, int trim);
 };
 
 #endif

@@ -120,6 +120,16 @@ namespace util{
         return ret;
     }
 
+    /** get a reverse sequence of str
+     * @param str input string sequence
+     * @return reverse sequence of str
+     */
+    inline std::string reverse(const std::string& str){
+        std::string ret = str;
+        std::reverse(ret.begin(), ret.end());
+        return ret;
+    }
+
     /** get the basename of a path string
      * @param path name
      * @return basename of path
