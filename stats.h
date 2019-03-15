@@ -173,12 +173,12 @@ class Stats{
          */
         void reportHtmlORA(std::ofstream& ofs, std::string filteringType, std::string readName);
         
-        /* whether this->fqFile is long read fq
+        /** whether this->fqFile is long read fq
          * @return true if this->cycles > 300
          */
         bool isLongRead();
         
-        /* get mean read length of this->fqFile
+        /** get mean read length of this->fqFile
          * @return mean read length of this->fqFile 
          */
         int getMeanLength();
