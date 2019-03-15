@@ -32,10 +32,10 @@ class Evaluator{
             this->readNum = 0;
             this->twoColorSystem = false;
             this->illuminaAdapter = false;
+            this->adapter = "";
             this->evaluateReadLen();
             this->evaluateReadNum();
             this->evaluateTwoColorSystem();
-            this->evaluateAdapterSeq();
         }
         
         /** Destroy a evaluator */
@@ -52,6 +52,7 @@ class Evaluator{
          * @return the estimated adapter sequence of this fastq file
          */
         inline std::string getAdapter(){
+            this->evaluateAdapterSeq();
             return this->adapter;
         }
 

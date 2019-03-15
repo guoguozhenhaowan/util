@@ -2,11 +2,13 @@
 #include "evaluator.h"
 
 class EvaluatorTest : public testing::Test{
+    void SetUp() override{
+    }
     protected:
         Evaluator e = {"./testdata/R1.adaptor.fq.gz", 0};
 };
 
-TEST_F(EvaluatorTest, getReadNum){
+TEST_F(EvaluatorTest, All){
     EXPECT_EQ(e.getAdapter(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA");
     EXPECT_TRUE(e.isIlluminaAdapter());
     EXPECT_TRUE(e.isTwoColorSystem());
