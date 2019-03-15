@@ -26,7 +26,7 @@ class Stats{
         bool summarized;               ///< summarized or not, if this->summarize() called, then this->summarized = true
         size_t kmerMax;                ///< the maximum kmerLen kmer in this->fqFile
         size_t kmerMin;                ///< the minimum kmerLen kmer in this->fqFile
-        size_t kmerLen = 5;            ///< kmer length to calculate, default 5
+        int kmerLen = 5;            ///< kmer length to calculate, default 5
         int kmerBufLen;                ///< kmer statistic array length, just equal 2 << (2 * this->kmerLen)
         size_t lengthSum;              ///< total length of reads in this->fqFile
         size_t q20Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 20 in this->fqFile
@@ -40,12 +40,10 @@ class Stats{
         size_t *cycleTotalQual;        ///< total quality of each cycle
         size_t *kmer;                  ///< kmer count array 
         int overRepSampleFreq = 100;   ///< over representation analysis sampling frequence, default 100
-         
-
         std::map<std::string, double*> qualityCurves; ///< map of <statName, statNumber*> statNumber is a pointer to array of statistics of each cycle quality 
         std::map<std::string, double*> contentCurves; ///< map of <statName, statNumber*> statNumber is a pointer to array of statistics of each cycle content
-        std::map<std::string, size_t> overRepSeq;
-        std::map<std::string, size_t*> overRepSeqDist;
+        std::map<std::string, size_t> overRepSeq;     ///< map of <repSeq, repSeqCount>
+        std::map<std::string, size_t*> overRepSeqDist;///< map of <repseq, dist*>
 
     public:
         /** Construct a Stats object of fastq fileName
@@ -111,7 +109,12 @@ class Stats{
          */
         void statRead(Read* r);
 
-        static Stats* merge(std::vector<Stats*>& list);
+        /** merge a list of Stats objects into one
+         * @param fqName fastqName of these Stats objects
+         * @parma list a list of Stats objects
+         * @return a merged Stats object
+         */
+        static Stats* merge(const std::string& fqName, std::vector<Stats*>& list);
         
         /** output Stats object to std::ostream
          * @param os std::ostream object
@@ -128,19 +131,52 @@ class Stats{
          */
         void summarize(bool forced = false);
 
+        /** Generate json report
+         * @param ofs std::ofstream to output report
+         * @param padding padding in front of each line
+         */
         void reportJson(std::ofstream& ofs, std::string padding);
+        
+        /** Generate Html report
+         * @param ofs std::ofstream to output report
+         * @param filteringType filtering type of report
+         * @param readName library name 
+         */
         void reportHtml(std::ofstream& ofs, std::string filteringType, std::string readName);
+        
+
+        /** Generate Quality part of the Html report
+         * @param ofs std::ofstream to output report
+         * @param filteringType filtering type of report
+         * @param readName library name 
+         */
         void reportHtmlQuality(std::ofstream& ofs, std::string filteringType, std::string readName);
+        
+        /** Generate Content part of the Html report
+         * @param ofs std::ofstream to output report
+         * @param filteringType filtering type of report
+         * @param readName library name 
+         */
         void reportHtmlContents(std::ofstream& ofs, std::string filteringType, std::string readName);
+        
+        /** Generate Kmer part of the Html report
+         * @param ofs std::ofstream to output report
+         * @param filteringType filtering type of report
+         * @param readName library name 
+         */
         void reportHtmlKmer(std::ofstream& ofs, std::string filteringType, std::string readName);
+         
+        /** Generate Over representation analysis  part of the Html report
+         * @param ofs std::ofstream to output report
+         * @param filteringType filtering type of report
+         * @param readName library name 
+         */
         void reportHtmlORA(std::ofstream& ofs, std::string filteringType, std::string readName);
         
         /* whether this->fqFile is long read fq
          * @return true if this->cycles > 300
          */
         bool isLongRead();
-        
-        void initOverRepSeq();
         
         /* get mean read length of this->fqFile
          * @return mean read length of this->fqFile 
@@ -178,6 +214,8 @@ class Stats{
          * @return popup value of kmer table
          */
         std::string makeKmerTD(int i, int j);
+        
+        /** delete this->OverRepDist recources */ 
         void deleteOverRepSeqDist();
 
         /** test wheather count of seq is over represented

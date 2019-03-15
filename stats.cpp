@@ -44,10 +44,6 @@ void Stats::allocateRes(){
         this->kmer = new size_t[this->kmerBufLen];
         std::memset(this->kmer, 0, sizeof(size_t) * this->kmerBufLen);
     }
-    
-    if(this->overRepSampleFreq){
-        this->initOverRepSeq();
-    }
 }
 
 void Stats::extendBuffer(int newBufLen){
@@ -127,7 +123,7 @@ Stats::~Stats(){
         delete this->kmer;
     }
 
-    deleteOverRepSeqDist();
+    this->deleteOverRepSeqDist();
 }
 
 void Stats::summarize(bool forced){
@@ -257,6 +253,10 @@ void Stats::statRead(Read* r){
                             ++this->overRepSeq[seq];
                         }else{
                             for(int p = i; p < seq.length() + i && p < this->evaluatedSeqLen; ++p){
+                                if(this->overRepSeqDist.find(seq) == this->overRepSeqDist.end()){
+                                    this->overRepSeqDist[seq] = new size_t[this->evaluatedSeqLen];
+                                    std::memset(this->overRepSeqDist[seq], 0, sizeof(size_t) * this->evaluatedSeqLen);
+                                }
                                 ++this->overRepSeqDist[seq][p];
                             }
                         }
@@ -780,4 +780,73 @@ void Stats::reportHtmlContents(std::ofstream& ofs, std::string filteringType, st
     ofs << "</script>" << std::endl;
 
     delete[] x;
+}
+
+Stats* Stats::merge(const std::string& fqName, std::vector<Stats*>& list){
+    if(list.size() == 0){
+        return NULL;
+    }
+    
+    int c = 0;
+    int kl = 0;
+    int smp = 0;
+    for(int i = 0; i < list.size(); ++i){
+        list[i]->summarize();
+        c = std::max(c, list[i]->getCycles());
+        kl = std::max(kl, list[i]->kmerLen);
+        smp = std::max(smp, list[i]->overRepSampleFreq);
+    }
+
+    Stats* s = new Stats(fqName);
+    s->setKmerLen(kl);
+    s->setOverRepSampleFreq(smp);
+    s->allocateRes();
+
+    for(int i = 0; i < list.size(); ++i){
+        int curCycles = list[i]->getCycles();
+        s->reads += list[i]->reads;
+        s->lengthSum += list[i]->lengthSum;
+        for(int j = 0; j < 8; ++j){
+            for(int k = 0; k < c && k < curCycles; ++k){
+                s->cycleQ30Bases[i][j] += list[i]->cycleQ30Bases[i][j];
+                s->cycleQ20Bases[i][j] += list[i]->cycleQ20Bases[i][j];
+                s->cycleBaseContents[i][j] += list[i]->cycleBaseContents[i][j];
+                s->cycleBaseQual[i][j] += list[i]->cycleBaseQual[i][j];
+            }
+        }
+
+        for(int j = 0; j < c && j < curCycles; ++j){
+            s->cycleTotalBase[j] += list[i]->cycleTotalBase[j];
+            s->cycleTotalQual[j] += list[i]->cycleTotalQual[j];
+        }
+
+        if(s->kmerLen){
+            for(int j = 0; j < s->kmerBufLen; ++j){
+                s->kmer[i] += list[i]->kmer[i];
+            }
+        }
+
+        if(s->overRepSampleFreq){
+            for(auto& e: s->overRepSeq){
+                s->overRepSeq[e.first] += list[i]->overRepSeq[e.first];
+                for(int j = 0; j < s->evaluatedSeqLen; ++j){
+                    if(s->overRepSeqDist.find(e.first) == s->overRepSeqDist.end()){
+                        s->overRepSeqDist[e.first] = new size_t[s->evaluatedSeqLen];
+                        std::memset(s->overRepSeqDist[e.first], 0, sizeof(size_t) * s->evaluatedSeqLen);
+                    }
+                    s->overRepSeqDist[e.first][j] += list[i]->overRepSeqDist[e.first][j];
+                }
+            }
+        }
+    }
+
+    s->summarize();
+    return s;
+}
+
+void Stats::deleteOverRepSeqDist(){
+    for(auto& e: this->overRepSeq){
+        delete this->overRepSeqDist[e.first];
+        this->overRepSeqDist[e.first] = NULL;
+    }
 }
