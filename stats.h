@@ -45,10 +45,10 @@ class Stats{
         std::map<std::string, size_t*> overRepSeqDist;///< map of <repseq, dist*>
 
     public:
-        /** Construct a Stats object of fastq fileName
+        /** Construct a Stats object of fq with length estReadLen
          * Get estimated read length
          */
-        Stats(const std::string& fileName);
+        Stats(const int& estReadLen);
         
         /** Destroy a Stats object
          * Free allocated mamory
@@ -109,11 +109,11 @@ class Stats{
         void statRead(Read* r);
 
         /** merge a list of Stats objects into one
-         * @param fqName fastqName of these Stats objects
          * @param list a list of Stats objects
+         * @param estReadLen estimated read length of this fastq
          * @return a merged Stats object
          */
-        static Stats* merge(const std::string& fqName, std::vector<Stats*>& list);
+        static Stats* merge(std::vector<Stats*>& list, const int& estReadLen);
         
         /** output Stats object to std::ostream
          * @param os std::ostream object

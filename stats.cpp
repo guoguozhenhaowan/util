@@ -1,14 +1,11 @@
 #include "stats.h"
 
-Stats::Stats(const std::string& fileName){
-    this->fqFile = fileName;
-    Evaluator e(fileName, 0);
-    int readLen = e.getReadLen();
+Stats::Stats(const int& estReadLen){
     this->reads = 0;
     this->bases = 0;
-    this->evaluatedSeqLen = readLen;
-    this->cycles = readLen;
-    this->bufLen = readLen + 1024;
+    this->evaluatedSeqLen = estReadLen;
+    this->cycles = estReadLen;
+    this->bufLen = estReadLen + 1024;
     this->q20Total = 0;
     this->q30Total = 0;
     this->summarized = false;
@@ -782,7 +779,7 @@ void Stats::reportHtmlContents(std::ofstream& ofs, std::string filteringType, st
     delete[] x;
 }
 
-Stats* Stats::merge(const std::string& fqName, std::vector<Stats*>& list){
+Stats* Stats::merge(std::vector<Stats*>& list, const int& estReadLen){
     if(list.size() == 0){
         return NULL;
     }
@@ -797,7 +794,7 @@ Stats* Stats::merge(const std::string& fqName, std::vector<Stats*>& list){
         smp = std::max(smp, list[i]->overRepSampleFreq);
     }
 
-    Stats* s = new Stats(fqName);
+    Stats* s = new Stats(estReadLen);
     s->setKmerLen(kl);
     s->setOverRepSampleFreq(smp);
     s->allocateRes();
