@@ -257,7 +257,7 @@ namespace util{
      * @param path path of directory to be created
      * @return true if make directories successfully
      */
-    bool makedir(const std::string& path){
+    inline bool makedir(const std::string& path){
         std::string fpath = util::replace(path, "~", std::string(std::getenv("HOME")) + "/");
 #ifdef _WIN32
         int ret = _mkdir(fpath.c_str());
