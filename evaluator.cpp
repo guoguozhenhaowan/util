@@ -1,6 +1,6 @@
 #include "evaluator.h"
 
-int Evaluator::seq2int(std::string& seq, int pos, int keylen, int lastVal){
+int Evaluator::seq2int(const std::string& seq, int pos, int keylen, int lastVal){
     int rlen = seq.length();
     if(lastVal >= 0){
         const int mask = (1 << (keylen * 2)) - 1;

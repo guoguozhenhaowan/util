@@ -74,19 +74,51 @@ class Stats{
 
         /** Allocate resources for a Stats object
          */
-        void allocateRes(){
-        }
-
+        void allocateRes();
+        
+        /** get cycle number of this->fqFile
+         * @return cycle number of this->fqFile
+         */
         int getCycles();
+        
+        /** get total raeds number of this->fqFile
+         * @return total read number of this->fqFile
+         */
         size_t getReads();
+        
+        /** get total base number of this->fqFile
+         * @return total base number of this->fqFile
+         */
         size_t getBases();
+        
+        /** get number of bases with quality equal or greater than 20 in this->fqFile
+         * @return number of bases with quality equal or greater than 20 in this->fqFile
+         */
         size_t getQ20();
+
+        /** get number of bases with quality equal or greater than 30 in this->fqFile 
+         * @return number of bases with quality equal or greater than 30 in this->fqFile
+         */
         size_t getQ30();
+
+        /** get number of base G and C in this->fqFile
+         * @return number of base G and C in this->fqFile
+         */
         size_t getGCNumber();
+
+        /** do statistics of one read in this->fqFile
+         * @param r pointer to object Read
+         */
         void statRead(Read* r);
 
         static Stats* merge(std::vector<Stats*>& list);
-        void print();
+        
+        /** output Stats object to std::ostream
+         * @param os std::ostream object
+         * @param s Stats object
+         * @return std::ostream object
+         */
+        friend std::ostream& operator<<(std::ostream& os, const Stats& s);
 
         /** Summary statistic items, get this->bases, this->cycles, this->q20Bases, this->q30Bases, this->q20Total, this->q30Total,
          * this->qualityCurves["mean"], this->qualityCurves["A/T/C/G/N"], this->contentCurves["A/T/C/G/N"], this->contentCurves["GC"]
@@ -99,25 +131,60 @@ class Stats{
         void reportJson(std::ofstream& ofs, std::string padding);
         void reportHtml(std::ofstream& ofs, std::string filteringType, std::string readName);
         void reportHtmlQuality(std::ofstream& ofs, std::string filteringType, std::string readName);
+        void reportHtmlContents(std::ofstream& ofs, std::string filteringType, std::string readName);
         void reportHtmlKmer(std::ofstream& ofs, std::string filteringType, std::string readName);
         void reportHtmlORA(std::ofstream& ofs, std::string filteringType, std::string readName);
+        
+        /* whether this->fqFile is long read fq
+         * @return true if this->cycles > 300
+         */
         bool isLongRead();
+        
         void initOverRepSeq();
+        
+        /* get mean read length of this->fqFile
+         * @return mean read length of this->fqFile 
+         */
         int getMeanLength();
 
     public:
-        static std::string list2string(double* list, int size);
-        static std::string list2string(double* list, int size, size_t* coords);
-        static std::string list2string(size_t* list, int size);
-        static int base2val(char base);
+        /** convert an array of value type T to a string seperated by ","
+         * @param list pointer to a T value array
+         * @param size the length of the T value array
+         */ 
+        template<typename T>
+        static std::string list2string(T* list, int size);
+       
+        /** convert an array of T values to a string seperated by ","
+         * @param list pointer to a T value array
+         * @param size the length of the T value array
+         * @param coordinates to define the ith value output
+         * ith value output equals average of(list[coords[i-1]] ... list[coords[i]])
+         */ 
+        template<typename T>
+        static std::string list2string(T* list, int size, size_t* coords);
 
     public:
+        
+        /** extend the array buffer for statistics longer
+         * @param newBufLen the expected smallest buffer length
+         * for performance, buffer length will increase to std::max(newBufLen + 100, 1.5 * newBufLen)
+         */
         void extendBuffer(int newBufLen);
+       
+        /** make html popup value of kmer table
+         * @param i row index 
+         * @param j col index
+         * @return popup value of kmer table
+         */
         std::string makeKmerTD(int i, int j);
-        std::string kmer3(int val);
-        std::string kmer2(int val);
         void deleteOverRepSeqDist();
-        bool overRepPassed(std::string& seq, size_t count);
+
+        /** test wheather count of seq is over represented
+         * @param seq sequence to be evaluated
+         * @count seq count in sampling of this->fqFile
+         */
+        bool overRepPassed(const std::string& seq, size_t count);
 };
 
 #endif

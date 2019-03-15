@@ -101,7 +101,7 @@ class Evaluator{
          * @param seqLen the encoded nucleotide sequence length
          * @return the nucleotide sequence of val encoded
          */
-        std::string int2seq(size_t val, int seqLen);
+        static std::string int2seq(size_t val, int seqLen);
         
         /** convert the substring started at pos to pos + seqLen - 1 of a string to int
          * each 2 bits represents a nucleotide[A->00, T->01, C->10, G->11]
@@ -114,7 +114,7 @@ class Evaluator{
          * @param lastVal the int representation of  substring started at pos - 1 to pos + seqLen - 2 of string
          * @return int representation of the substring started at pos to pos + seqLen - 1 of string seq, may be -1
          */
-        int seq2int(std::string& seq, int pos, int seqLen, int lastVal = -1);
+        static int seq2int(const std::string& seq, int pos, int seqLen, int lastVal = -1);
 
     private:
         /** evaluate number of reads in fastq file

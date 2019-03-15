@@ -204,7 +204,7 @@ void Stats::summarize(bool forced){
 }
 
 int Stats::getMeanLength(){
-    if(this->reads = 0){
+    if(this->reads == 0){
         return 0;
     }
     return this->lengthSum/this->reads;
@@ -216,11 +216,9 @@ void Stats::statRead(Read* r){
     if(this->bufLen < len){
         this->extendBuffer(std::max(len + 100, (int)(len * 1.5)));
     }
-    const char* seqStr = r->seq.seqStr.c_str();
-    const char* qualStr = r->quality.c_str();
-    int kmerVal = 0;
-    bool needFullCompute = true; //recompute kmerVal needed
-    int kmerMask = ~(0x3);
+    const std::string seqStr = r->seq.seqStr.c_str();
+    const std::string qualStr = r->quality.c_str();
+    int kmerVal = -1;
     for(int i = 0; i < len; ++i){
         char base = seqStr[i];
         char qual = qualStr[i];
@@ -238,63 +236,548 @@ void Stats::statRead(Read* r){
         this->cycleBaseQual[bIndex][i] += (qual - 33);
         ++this->cycleTotalBase[i];
         this->cycleTotalQual[i] += (qual - 33);
-        if(base == 'N'){
-            needFullCompute = true;
-            continue;
-        }
-
+        
         if(this->kmerLen){
             if(i < this->kmerLen - 1){
                 continue;
             }
-            if(!needFullCompute){
-                int val = this->base2val(base);
-                if(val < 0){
-                    needFullCompute = true;
-                    continue;
-                }else{
-                    kmerVal = ((kmerVal << 2) & kmerMask) | val;
-                    ++this->kmer[kmerVal];
-                }
-            }else{
-                bool valid = true;
-                kmerVal = 0;
-                for(int k = 0; k < this->kmerLen; ++k){
-                    int val = this->base2val(this->seqStr[i - this->kmerLen + k]);
-                    if(val < 0){
-                        valid = false;
-                        break;
-                    }
-                    kmerVal = ((kmerVal << 2) & kmerMask) | val;
-                }
-                if(!valid){
-                    needFullCompute = true;
-                    continue;
-                }else{
-                    ++this->kmer[kmerVal];
-                    needFullCompute = false;
-                }
+            kmerVal = Evaluator::seq2int(seqStr, i - this->kmerLen + 1, this->kmerLen, kmerVal);
+            if(kmerVal >= 0){
+                ++this->kmer[kmerVal];
             }
         }
 
         if(this->overRepSampleFreq){
             if(this->reads % this->overRepSampleFreq == 0){
-                std::set<int> steps[5] = {10, 20, 40, 100, std::min(150, this->evaluatedSeqLen - 2)};
-                for(auto s: steps){
-                    for(int i=0; i< len - step; ++i){
-                        std::string seq = r->seq.seqStr.substr(i, step);
+                std::set<int> steps = {10, 20, 40, 100, std::min(150, this->evaluatedSeqLen - 2)};
+                for(auto step: steps){
+                    for(int i = 0; i < len - step; i += step){
+                        std::string seq = seqStr.substr(i, step);
                         if(this->overRepSeq.count(seq) > 0){
-                            ++this->overRepSeq.count(seq);
+                            ++this->overRepSeq[seq];
                         }else{
                             for(int p = i; p < seq.length() + i && p < this->evaluatedSeqLen; ++p){
                                 ++this->overRepSeqDist[seq][p];
                             }
                         }
-                        i += step;
                     }
                 }
             }
         }
     }
     ++this->reads;
+}
+
+int Stats::getCycles(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->cycles;
+}
+
+size_t Stats::getReads(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->reads;
+}
+
+size_t Stats::getBases(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->bases;
+}
+
+size_t Stats::getQ20(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->q20Total;
+}
+
+size_t Stats::getQ30(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->q30Total;
+}
+
+size_t Stats::getGCNumber(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->baseContents['G' & 0x07] + this->baseContents['C' & 0x07];
+}
+
+std::ostream& operator<<(std::ostream& os, const Stats& s){
+    os << "total reads: " << s.reads << "\n";
+    os << "total bases: " << s.bases << "\n";
+    os << "Q20   bases: " << s.q20Total << "(" << (s.q20Total*100.0)/s.bases << "%)\n";
+    os << "Q30   bases: " << s.q30Total << "(" << (s.q30Total*100.0)/s.bases << "%)\n";
+    return os;
+}
+
+void Stats::reportJson(std::ofstream& ofs, std::string padding){
+    // braces
+    ofs << "{\n";
+    // basic qc info 
+    ofs << padding << "\t\"total_reads\": " << this->reads << ",\n";
+    ofs << padding << "\t\"total_bases\": " << this->bases << ",\n";
+    ofs << padding << "\t\"q20_bases\": " << this->q20Total << ",\n";
+    ofs << padding << "\t\"q30_bases\": " << this->q30Total << ",\n";
+    ofs << padding << "\t\"total_cycles\": " << this->cycles << ",\n";
+    // quality curves
+    std::string qualNames[5] = {"A", "T", "C", "G", "mean"};
+    ofs << padding << "\t\"quality_curves\": {\n";
+    for(int i = 0; i < 5; ++i){
+        std::string name = qualNames[i];
+        double* curve = this->qualityCurves[name];
+        ofs << padding << "\t\t\"" << name << "\":[";
+        for(int c = 0; c < this->cycles; ++c){
+            ofs << curve[c];
+            if(c != this->cycles - 1){
+                ofs << ",";
+            }
+        }
+        ofs << "]";
+        if(i != 4){
+            ofs << ",";
+        }
+        ofs << "\n";
+    }
+    ofs << padding << "\t},\n";
+    //content curves
+    std::string contentNames[6] = {"A", "T", "C", "G", "N", "GC"};
+    ofs << padding << "\t\"content_curves\":{\n";
+    for(int i = 0; i < 6; ++i){
+        std::string name = contentNames[i];
+        double* curve = this->contentCurves[name];
+        ofs << padding << "\t\t" << name << "\":[";
+        for(int c = 0; c < this->cycles; ++c){
+            ofs << curve[c];
+            if(c != this->cycles - 1){
+                ofs << ",";
+            }
+        }
+        ofs << "]";
+        if(i != 5){
+            ofs << ",";
+        }
+        ofs << "\n";
+    }
+    ofs << padding << "\t},\n";
+    //KMER counting(optional)
+    if(this->kmerLen){
+        ofs << padding << "\t" << "\"kmer_count\": {\n";
+        for(size_t i = 0; i < (2 << (this->kmerLen * 2)); ++i){
+            std::string seq = Evaluator::int2seq(i, this->kmerLen);
+            ofs << padding << "\t\t\"" << seq << "\":" << this->kmer[i];
+            if(i != (2 << this->kmerLen) - 1){
+                ofs << ",";
+            }
+            if(i != (2 << (this->kmerLen * 2)) - 1){
+                ofs << ",\n";
+            }else{
+                ofs << "\n";
+            }
+        }
+        ofs << padding << "\t},\n";
+    }
+    // over represented seqs(optional)
+    if(this->overRepSampleFreq){
+        ofs << padding << "\t\"overrepresented_sequences\": {\n";
+        bool first = true;
+        for(auto& e : this->overRepSeq){
+            if(!this->overRepPassed(e.first, e.second)){
+                continue;
+            }
+            if(!first){
+                ofs << ",\n";
+            }else{
+                first = false;
+            }
+            ofs << padding << "\t\t\"" << e.first << "\":" << e.second;
+        }
+        ofs << padding << "\t}\n";
+    }
+    ofs << padding << "},\n";
+}
+
+template<typename T>
+std::string Stats::list2string(T* list, int size){
+    std::stringstream ss;
+    for(int i = 0; i < size; ++i){
+        ss << list[i];
+        if(i < size - 1){
+            ss << ",";
+        }
+    }
+    return ss.str();
+}
+
+template<typename T>
+std::string Stats::list2string(T* list, int size, size_t* coords){
+    std::stringstream ss;
+    long start = 0;
+    long end = 0;
+    T total = 0;
+    for(int i = 0; i < size; ++i){
+        if(i > 0){
+            start = coords[i - 1];
+        }
+        end = coords[i];
+        total = 0;
+        for(int j = start; j < end; ++j){
+            total += list[j];
+        }
+        if(end == start){
+            ss << "0";
+        }else{
+            ss << total /(end - start);
+        }
+        if(i < size - 1){
+            ss << ",";
+        }
+    }
+    return ss.str();
+}
+
+bool Stats::overRepPassed(const std::string& seq, size_t count){
+    int s = this->overRepSampleFreq;
+    switch(seq.length()){
+        case 10:
+            return s * count > 500;
+        case 20:
+            return s * count > 200;
+        case 40:
+            return s * count > 100;
+        case 100:
+            return s * count > 50;
+        default:
+            return s * count > 20;
+    }
+}
+
+bool Stats::isLongRead(){
+    return this->cycles > 300;
+}
+
+void Stats::reportHtml(std::ofstream& ofs, std::string filteringType, std::string readName){
+    this->reportHtmlQuality(ofs, filteringType, readName);
+    this->reportHtmlContents(ofs, filteringType, readName);
+    if(this->kmerLen){
+        this->reportHtmlKmer(ofs, filteringType, readName);
+    }
+    if(this->overRepSampleFreq){
+        this->reportHtmlORA(ofs, filteringType, readName);
+    }
+}
+
+void Stats::reportHtmlORA(std::ofstream& ofs, std::string filteringType, std::string readName){
+    double dBases = this->bases;
+    int displayed = 0;
+    std::string subSection = filteringType + ": " + readName + ": overrepresented sequences";
+    std::string divName = util::replace(subSection, " ", "_");
+    divName = util::replace(divName, ":", "_");
+    std::string title = "";
+    
+    ofs << "<div class='subsection_title'><a title='click to hide/show' onclick=showOrHide('";
+    ofs << divName << "')>" << subSection << "</a></div>\n";
+    ofs << "<div id='" << divName << "'>\n";
+    ofs << "<div class='sub_section_tips'>Sampling rate: 1 / " << this->overRepSampleFreq << "</div>\n";
+    ofs << "<table class='summary_table'>\n";
+    ofs << "<tr style='font-weight:bold;'><td>overrepresented sequence</td><td>count (% of bases)</td><td>distribution: cycle 1 ~ cycle " << this->evaluatedSeqLen << "</td></tr>"<<std::endl;
+    int found = 0;
+    for(auto& e: this->overRepSeq){
+        std::string seq = e.first;
+        size_t count = e.second;
+        if(!this->overRepPassed(seq, count))
+            continue;
+        found++;
+        double percent = (100.0 * count * seq.length() * this->overRepSampleFreq)/dBases;
+        ofs << "<tr>";
+        ofs << "<td width='400' style='word-break:break-all;font-size:8px;'>" << seq << "</td>";
+        ofs << "<td width='200'>" << count << " (" << std::to_string(percent) <<"%)</td>";
+        ofs << "<td width='250'><canvas id='" << divName << "_" << seq << "' width='240' height='20'></td>";
+        ofs << "</tr>" << std::endl;
+    }
+    if(found == 0)
+        ofs << "<tr><td style='text-align:center' colspan='3'>not found</td></tr>" << std::endl;
+    ofs << "</table>\n";
+    ofs << "</div>\n";
+
+    // output the JS
+    ofs << "<script language='javascript'>" << std::endl;
+    ofs << "var seqlen = " << this->evaluatedSeqLen << ";" << std::endl;
+    ofs << "var orp_dist = {" << std::endl;
+    bool first = true;
+    for(auto& e: this->overRepSeq){
+        std::string seq = e.first;
+        size_t count = e.second;
+        if(!overRepPassed(seq, count))
+            continue;
+        if(!first) {
+            ofs << "," << std::endl;
+        } else
+            first = false;
+        ofs << "\t\"" << divName << "_" << seq << "\":[";
+        for(int i=0; i< this->evaluatedSeqLen; ++i){
+            if(i !=0 )
+                ofs << ",";
+            ofs << this->overRepSeqDist[seq][i];
+        }
+        ofs << "]";
+    }
+        ofs << "\n};" << std::endl;
+
+    ofs << "for (seq in orp_dist) {"<< std::endl;
+    ofs << "    var cvs = document.getElementById(seq);"<< std::endl;
+    ofs << "    var ctx = cvs.getContext('2d'); "<< std::endl;
+    ofs << "    var data = orp_dist[seq];"<< std::endl;
+    ofs << "    var w = 240;"<< std::endl;
+    ofs << "    var h = 20;"<< std::endl;
+    ofs << "    ctx.fillStyle='#cccccc';"<< std::endl;
+    ofs << "    ctx.fillRect(0, 0, w, h);"<< std::endl;
+    ofs << "    ctx.fillStyle='#0000FF';"<< std::endl;
+    ofs << "    var maxVal = 0;"<< std::endl;
+    ofs << "    for(d=0; d<seqlen; d++) {"<< std::endl;
+    ofs << "        if(data[d]>maxVal) maxVal = data[d];"<< std::endl;
+    ofs << "    }"<< std::endl;
+    ofs << "    var step = (seqlen-1) /  (w-1);"<< std::endl;
+    ofs << "    for(x=0; x<w; x++){"<< std::endl;
+    ofs << "        var target = step * x;"<< std::endl;
+    ofs << "        var val = data[Math.floor(target)];"<< std::endl;
+    ofs << "        var y = Math.floor((val / maxVal) * h);"<< std::endl;
+    ofs << "        ctx.fillRect(x,h-1, 1, -y);"<< std::endl;
+    ofs << "    }"<< std::endl;
+    ofs << "}"<< std::endl;
+    ofs << "</script>"<< std::endl;
+}
+
+void Stats::reportHtmlKmer(std::ofstream& ofs, std::string filteringType, std::string readName) {
+    // KMER
+    std::string subsection = filteringType + ": " + readName + ": KMER counting";
+    std::string divName = util::replace(subsection, " ", "_");
+    divName = util::replace(divName, ":", "_");
+    std::string title = "";
+
+    ofs << "<div class='subsection_title'><a title='click to hide/show' onclick=showOrHide('" << divName << "')>" + subsection + "</a></div>\n";
+    ofs << "<div  id='" << divName << "'>\n";
+    ofs << "<div class='sub_section_tips'>Darker background means larger counts. The count will be shown on mouse over.</div>\n";
+    ofs << "<table class='kmer_table' style='width:680px;'>\n";
+    ofs << "<tr>";
+    ofs << "<td></td>";
+    // the heading row
+    for(int h = 0; h < (2 << this->kmerLen); ++h){
+        ofs << "<td style='color:#333333'>" << std::to_string(h + 1) << "</td>";
+    }
+    ofs << "</tr>\n";
+    // content
+    for(int i = 0; i < (2 << this->kmerLen); ++i){
+        ofs << "<tr>";
+        ofs << "<td style='color:#333333'>" << std::to_string(i + 1) << "</td>";
+        for(int j = 0; j < (2 << this->kmerLen); ++j){
+            ofs << this->makeKmerTD(i, j);
+        }
+        ofs << "</tr>\n";
+    }
+    ofs << "</table>\n";
+    ofs << "</div>\n";
+}
+
+std::string Stats::makeKmerTD(int i, int j){
+    std::string seq = Evaluator::int2seq(i * j, this->kmerLen);
+    double meanBases = (double)(this->bases + 1) / this->kmerBufLen;
+    double prop = this->kmer[i * j] / meanBases;
+    double frac = 0.5;
+    if(prop > 2.0){
+        frac = (prop-2.0)/20.0 + 0.5;
+    }
+    else if(prop< 0.5){
+        frac = prop;
+    }
+
+    frac = std::max(0.01, std::min(1.0, frac));
+    int r = (1.0-frac) * 255;
+    int g = r;
+    int b = r;
+    std::stringstream ss;
+    ss << "<td style='background:#";
+    if(r<16){
+        ss << "0";
+    }
+    ss << std::hex <<r;
+    if(g<16){
+        ss << "0";
+    }
+    ss << std::hex <<g;
+    if(b<16){
+        ss << "0";
+    }
+    ss << std::hex << b;
+    ss << std::dec << "' title='"<< seq << ": " << this->kmer[i * j] << "\n" << prop << " times as mean value'>";
+    ss << seq << "</td>";
+    return ss.str();
+}
+
+void Stats::reportHtmlQuality(std::ofstream& ofs, std::string filteringType, std::string readName) {
+    // quality
+    std::string subsection = filteringType + ": " + readName + ": quality";
+    std::string divName = util::replace(subsection, " ", "_");
+    divName = util::replace(divName, ":", "_");
+    std::string title = "";
+
+    ofs << "<div class='subsection_title'><a title='click to hide/show' onclick=showOrHide('" << divName << "')>" + subsection + "</a></div>\n";
+    ofs << "<div id='" + divName + "'>\n";
+    ofs << "<div class='sub_section_tips'>Value of each position will be shown on mouse over.</div>\n";
+    ofs << "<div class='figure' id='plot_" + divName + "'></div>\n";
+    ofs << "</div>\n";
+
+    std::string alphabets[5] = {"A", "T", "C", "G", "mean"};
+    std::string colors[5] = {"rgba(128,128,0,1.0)", "rgba(128,0,128,1.0)", "rgba(0,255,0,1.0)", "rgba(0,0,255,1.0)", "rgba(20,20,20,1.0)"};
+    ofs << "\n<script type=\"text/javascript\">" << std::endl;
+    std::string json_str = "var data=[";
+
+    size_t *x = new size_t[this->cycles];
+    int total = 0;
+    if(!this->isLongRead()) {
+        for(int i = 0; i < this->cycles; ++i){
+            x[total] = i + 1;
+            total++;
+        }
+    } else {
+        const int fullSampling = 40;
+        for(int i=0; i < fullSampling && i < this->cycles; i++){
+            x[total] = i + 1;
+            total++;
+        }
+        // down sampling if it's too long
+        if(this->cycles > fullSampling) {
+            double pos = fullSampling;
+            while(true){
+                pos *= 1.05;
+                if(pos >= this->cycles)
+                    break;
+                x[total] = (int)pos;
+                total++;
+            }
+            // make sure lsat one is contained
+            if(x[total-1] != this->cycles){
+                x[total] = this->cycles;
+                total++;
+            }
+        }
+    }
+    // four bases
+    for (int b = 0; b<5; b++) {
+        std::string base = alphabets[b];
+        json_str += "{";
+        json_str += "x:[" + this->list2string(x, total) + "],";
+        json_str += "y:[" + this->list2string(this->qualityCurves[base], total, x) + "],";
+        json_str += "name: '" + base + "',";
+        json_str += "mode:'lines',";
+        json_str += "line:{color:'" + colors[b] + "', width:1}\n";
+        json_str += "},";
+    }
+    json_str += "];\n";
+    json_str += "var layout={title:'" + title + "', xaxis:{title:'position'";
+    // use log plot if it's too long
+    if(this->isLongRead()) {
+        json_str += ",type:'log'";
+    }
+    json_str += "}, yaxis:{title:'quality'}};\n";
+    json_str += "Plotly.newPlot('plot_" + divName + "', data, layout);\n";
+
+    ofs << json_str;
+    ofs << "</script>" << std::endl;
+
+    delete[] x;
+}
+
+void Stats::reportHtmlContents(std::ofstream& ofs, std::string filteringType, std::string readName) {
+
+    // content
+    std::string subsection = filteringType + ": " + readName + ": base contents";
+    std::string divName = util::replace(subsection, " ", "_");
+    divName = util::replace(divName, ":", "_");
+    std::string title = "";
+
+    ofs << "<div class='subsection_title'><a title='click to hide/show' onclick=showOrHide('" << divName << "')>" + subsection + "</a></div>\n";
+    ofs << "<div id='" + divName + "'>\n";
+    ofs << "<div class='sub_section_tips'>Value of each position will be shown on mouse over.</div>\n";
+    ofs << "<div class='figure' id='plot_" + divName + "'></div>\n";
+    ofs << "</div>\n";
+
+    std::string alphabets[6] = {"A", "T", "C", "G", "N", "GC"};
+    std::string colors[6] = {"rgba(128,128,0,1.0)", "rgba(128,0,128,1.0)", "rgba(0,255,0,1.0)", "rgba(0,0,255,1.0)", "rgba(255, 0, 0, 1.0)", "rgba(20,20,20,1.0)"};
+    ofs << "\n<script type=\"text/javascript\">" << std::endl;
+    std::string json_str = "var data=[";
+
+    size_t *x = new size_t[this->cycles];
+    int total = 0;
+    if(!this->isLongRead()) {
+        for(int i=0; i<this->cycles; i++){
+            x[total] = i+1;
+            total++;
+        }
+    } else {
+        const int fullSampling = 40;
+        for(int i=0; i<fullSampling && i<this->cycles; i++){
+            x[total] = i+1;
+             total++;
+        }
+        // down sampling if it's too long
+        if(this->cycles > fullSampling) {
+            double pos = fullSampling;
+            while(true){
+                pos *= 1.05;
+                if(pos >= this->cycles)
+                    break;
+                x[total] = (int)pos;
+                total++;
+            }
+            // make sure lsat one is contained
+            if(x[total-1] != this->cycles){
+                x[total] = this->cycles;
+                total++; 
+             }
+        } 
+    }
+    // four bases
+    for (int b = 0; b<6; b++) {
+        std::string base = alphabets[b];
+        long count = 0;
+        if(base.size()==1) {
+            char b = base[0] & 0x07;
+            count = this->baseContents[b];
+        } else {
+            count = this->baseContents['G' & 0x07] + this->baseContents['C' & 0x07] ;
+        }
+        std::string percentage = std::to_string((double)count * 100.0 / this->bases);
+        if(percentage.length()>5)
+            percentage = percentage.substr(0,5);
+        std::string name = base + "(" + percentage + "%)";
+
+        json_str += "{";
+        json_str += "x:[" + list2string(x, total) + "],";
+        json_str += "y:[" + list2string(this->contentCurves[base], total, x) + "],";
+        json_str += "name: '" + name + "',";
+        json_str += "mode:'lines',";
+        json_str += "line:{color:'" + colors[b] + "', width:1}\n";
+        json_str += "},";
+    }
+    json_str += "];\n";
+    json_str += "var layout={title:'" + title + "', xaxis:{title:'position'";
+    // use log plot if it's too long
+    if(this->isLongRead()) {
+        json_str += ",type:'log'";
+    }
+    json_str += "}, yaxis:{title:'base content ratios'}};\n";
+    json_str += "Plotly.newPlot('plot_" + divName + "', data, layout);\n";
+
+    ofs << json_str;
+    ofs << "</script>" << std::endl;
+
+    delete[] x;
 }
