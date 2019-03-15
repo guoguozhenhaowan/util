@@ -14,27 +14,26 @@
 
 /** Class to do statistics of a fastq file */
 class Stats{
-        std::string fqFile;            ///< fastq file name to be analysised
-        size_t reads;                  ///< total reads of this->fqFile
-        size_t bases;                  ///< total bases of this->fqFile
-        int evaluatedSeqLen;           ///< estimated read length of this->fqFile
-        int cycles;                    ///< maximum cycle of this->fqFile
-        int bufLen;                    ///< buffer length to store a static item of one read in this->fqFile
-        size_t q20Total;               ///< total bases with quality equal or greater than 20 in this->fqFile
-        size_t q30Total;               ///< total bases with quality equal or greater than 30 in this->fqFile
+        size_t reads;                  ///< total reads
+        size_t bases;                  ///< total bases
+        int evaluatedSeqLen;           ///< estimated read length
+        int cycles;                    ///< maximum cycle
+        int bufLen;                    ///< buffer length to store a static item of one read
+        size_t q20Total;               ///< number of bases with quality equal or greater than 20 
+        size_t q30Total;               ///< number of bases with quality equal or greater than 30 
         bool summarized;               ///< summarized or not, if this->summarize() called, then this->summarized = true
-        size_t kmerMax;                ///< the maximum kmerLen kmer in this->fqFile
-        size_t kmerMin;                ///< the minimum kmerLen kmer in this->fqFile
-        int kmerLen = 5;            ///< kmer length to calculate, default 5
+        size_t kmerMax;                ///< the maximum kmerLen kmer
+        size_t kmerMin;                ///< the minimum kmerLen kmer 
+        int kmerLen = 5;               ///< kmer length to calculate, default 5
         int kmerBufLen;                ///< kmer statistic array length, just equal 2 << (2 * this->kmerLen)
-        size_t lengthSum;              ///< total length of reads in this->fqFile
-        size_t q20Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 20 in this->fqFile
-        size_t q30Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 30 in this->fqFile
-        size_t baseContents[8];        ///< each base(ATCG) counts of this->fqFile
-        size_t *cycleQ20Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 20 in this->fqFile
-        size_t *cycleQ30Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 30 in this->fqFile
-        size_t *cycleBaseContents[8];  ///< each base(ATCG) counts at each cycle of this->fqFile
-        size_t *cycleBaseQual[8];      ///< each base(ATCG) quality at each cycle of this->fqFile
+        size_t lengthSum;              ///< total length of reads
+        size_t q20Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 20
+        size_t q30Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 30 
+        size_t baseContents[8];        ///< each base(ATCG) counts 
+        size_t *cycleQ20Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 20 
+        size_t *cycleQ30Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 30 
+        size_t *cycleBaseContents[8];  ///< each base(ATCG) counts at each cycle 
+        size_t *cycleBaseQual[8];      ///< each base(ATCG) quality at each cycle 
         size_t *cycleTotalBase;        ///< total base counts of each cycle
         size_t *cycleTotalQual;        ///< total quality of each cycle
         size_t *kmer;                  ///< kmer count array 
@@ -45,14 +44,10 @@ class Stats{
         std::map<std::string, size_t*> overRepSeqDist;///< map of <repseq, dist*>
 
     public:
-        /** Construct a Stats object of fq with length estReadLen
-         * Get estimated read length
-         */
+        /** Construct a Stats object of fq with length estReadLen */
         Stats(const int& estReadLen);
         
-        /** Destroy a Stats object
-         * Free allocated mamory
-         */
+        /** Destroy a Stats object Free allocated mamory */
         ~Stats();
 
         /** Set Kmer length to calculate
@@ -69,48 +64,47 @@ class Stats{
             this->overRepSampleFreq = readFreq;
         }
 
-        /** Allocate resources for a Stats object
-         */
+        /** Allocate resources for a Stats object */
         void allocateRes();
         
-        /** get cycle number of this->fqFile
-         * @return cycle number of this->fqFile
+        /** get cycle number
+         * @return cycle number 
          */
         int getCycles();
         
-        /** get total raeds number of this->fqFile
-         * @return total read number of this->fqFile
+        /** get total raeds number 
+         * @return total read number 
          */
         size_t getReads();
         
-        /** get total base number of this->fqFile
-         * @return total base number of this->fqFile
+        /** get total base number 
+         * @return total base number 
          */
         size_t getBases();
         
-        /** get number of bases with quality equal or greater than 20 in this->fqFile
-         * @return number of bases with quality equal or greater than 20 in this->fqFile
+        /** get number of bases with quality equal or greater than 20 
+         * @return number of bases with quality equal or greater than 20
          */
         size_t getQ20();
 
-        /** get number of bases with quality equal or greater than 30 in this->fqFile 
-         * @return number of bases with quality equal or greater than 30 in this->fqFile
+        /** get number of bases with quality equal or greater than 30  
+         * @return number of bases with quality equal or greater than 30 
          */
         size_t getQ30();
 
-        /** get number of base G and C in this->fqFile
-         * @return number of base G and C in this->fqFile
+        /** get number of base G and C 
+         * @return number of base G and C 
          */
         size_t getGCNumber();
 
-        /** do statistics of one read in this->fqFile
+        /** do statistics of one read 
          * @param r pointer to object Read
          */
         void statRead(Read* r);
 
         /** merge a list of Stats objects into one
          * @param list a list of Stats objects
-         * @param estReadLen estimated read length of this fastq
+         * @param estReadLen estimated read length
          * @return a merged Stats object
          */
         static Stats* merge(std::vector<Stats*>& list, const int& estReadLen);
@@ -172,13 +166,13 @@ class Stats{
          */
         void reportHtmlORA(std::ofstream& ofs, std::string filteringType, std::string readName);
         
-        /** whether this->fqFile is long read fq
+        /** whether is long read fq
          * @return true if this->cycles > 300
          */
         bool isLongRead();
         
-        /** get mean read length of this->fqFile
-         * @return mean read length of this->fqFile 
+        /** get mean read length 
+         * @return mean read length 
          */
         int getMeanLength();
 
@@ -219,7 +213,7 @@ class Stats{
 
         /** test wheather count of seq is over represented
          * @param seq sequence to be evaluated
-         * @param count seq count in sampling of this->fqFile
+         * @param count seq count in sampling 
          * @return true if the seq is over represented
          */
         bool overRepPassed(const std::string& seq, size_t count);
