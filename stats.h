@@ -14,7 +14,6 @@
 
 /** Class to do statistics of a fastq file */
 class Stats{
-    public:
         std::string fqFile;            ///< fastq file name to be analysised
         size_t reads;                  ///< total reads of this->fqFile
         size_t bases;                  ///< total bases of this->fqFile
@@ -111,7 +110,7 @@ class Stats{
 
         /** merge a list of Stats objects into one
          * @param fqName fastqName of these Stats objects
-         * @parma list a list of Stats objects
+         * @param list a list of Stats objects
          * @return a merged Stats object
          */
         static Stats* merge(const std::string& fqName, std::vector<Stats*>& list);
@@ -194,7 +193,7 @@ class Stats{
         /** convert an array of T values to a string seperated by ","
          * @param list pointer to a T value array
          * @param size the length of the T value array
-         * @param coordinates to define the ith value output
+         * @param coords coordinates to define the ith value output
          * ith value output equals average of(list[coords[i-1]] ... list[coords[i]])
          */ 
         template<typename T>
@@ -220,7 +219,8 @@ class Stats{
 
         /** test wheather count of seq is over represented
          * @param seq sequence to be evaluated
-         * @count seq count in sampling of this->fqFile
+         * @param count seq count in sampling of this->fqFile
+         * @return true if the seq is over represented
          */
         bool overRepPassed(const std::string& seq, size_t count);
 };
