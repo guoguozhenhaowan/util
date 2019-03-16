@@ -26,6 +26,7 @@ utilities
 |[dirutil.h](./dirutil.h)|recode from https://github.com/gpakosz/whereami
 |[util.h](./util.h)|useful functions
 |[gtutil.cpp](./gtutil.cpp)|google test for [util.h](./util.h)
+|[commoh.h](./common.h)|common const definition header file
 |[seq.h](./seq.h)|Seq class to represent a nucleotide sequence| 
 |[gtseq.cpp](./gtseq.cpp)|google test for [seq.h](./seq.h)
 |[read.h](./read.h)|Read and ReadPair class to represent fastq record
@@ -47,3 +48,6 @@ utilities
 |[overlapanalysis.h](./overlapanalysis.h)|OverlapAnalysis and OverlapResult Class to do overlap analysis and store results
 |[overlapAnalysis.cpp](./overlapanalysis.cpp)|implementation of some functions in [overlapanalysis.h](./overlapanalysis.h)
 |[gtoverlapanalysis.cpp](./gtoverlapanalysis.cpp)|google test for [overlapanalysis.h](./overlapanalysis.h)
+|[filter.h](./filter.h)|Filter class to do various filter
+|[filter.cpp](./filter.cpp)|implementation of some functions in [filter.h](./filter.h)
+|[gtfilter.cpp](./gtfilter.cpp)|google test for [filter.h](./filter.h)

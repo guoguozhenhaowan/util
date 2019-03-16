@@ -70,7 +70,7 @@ class Filter{
          * @param opt vasious quality cut options, some may happen
          * @return a Read trim and cut properly
          */
-        Read* trimAndCut(Read* r, int forceFrontCut, int forceTailCut, QualCutOpt* opt);
+        static Read* trimAndCut(Read* r, int forceFrontCut, int forceTailCut, QualCutOpt* opt);
         
         /** Filter a Read by its first index
          * @param r pointer to a Read object
@@ -78,8 +78,8 @@ class Filter{
          * @param threshold maximum different bases allowed for a succesful match
          * @return true if r's index is succesfully matched in the indexBlackList
          */
-        inline bool filterByIndex(Read* r, const std::vector<std::string>& indexBlackList, const int& threshold){
-            return this->match(indexBlackList, r->firstIndex(), threshold);
+        inline static bool filterByIndex(Read* r, const std::vector<std::string>& indexBlackList, const int& threshold){
+            return Filter::match(indexBlackList, r->firstIndex(), threshold);
         }
         
         /** Filter a pair of Read by their first index
@@ -89,8 +89,8 @@ class Filter{
          * @param threshold maximum different bases allowed for a succesful match
          * @return true if the first index of r1 or r2 succesfully matched in the indexBlackList
          */
-        inline bool filterByIndex(Read* r1, Read* r2, const std::vector<std::string>& indexBlackList, const int& threshold){
-            return this->filterByIndex(r1, indexBlackList, threshold) || this->filterByIndex(r2, indexBlackList, threshold);
+        inline static bool filterByIndex(Read* r1, Read* r2, const std::vector<std::string>& indexBlackList, const int& threshold){
+            return Filter::filterByIndex(r1, indexBlackList, threshold) || Filter::filterByIndex(r2, indexBlackList, threshold);
         }
 
         /** match a sequnce (target) against a series of sequences (list)
@@ -99,7 +99,7 @@ class Filter{
          * @param threshold maximum character difference allowed for a successful match
          * @return true if any successful match occurs between target and string in list
          */
-        bool match(const std::vector<std::string>& list, const std::string& target, int threshold);
+        static bool match(const std::vector<std::string>& list, const std::string& target, int threshold);
 };
 
 #endif
