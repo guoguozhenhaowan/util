@@ -206,7 +206,6 @@ class Stats{
          */
         int getMeanLength();
 
-    public:
         /** convert an array of value type T to a string seperated by ","
          * @param list pointer to a T value array
          * @param size the length of the T value array
@@ -223,8 +222,7 @@ class Stats{
         template<typename T>
         static std::string list2string(T* list, int size, size_t* coords);
 
-    public:
-        
+    private:
         /** extend the array buffer for statistics longer
          * @param newBufLen the expected smallest buffer length
          * for performance, buffer length will increase to std::max(newBufLen + 100, 1.5 * newBufLen)
