@@ -44,5 +44,5 @@ utilities
 |[stats.cpp](./stats.cpp)|implementation of some functions in [stats.h](./stats.h)
 |[gtstats.cpp](./gtstats.cpp)|google test for [stats.h](./stats.h)
 |[overlapanalysis.h](./overlapanalysis.h)|OverlapAnalysis and OverlapResult Class to do overlap analysis and store results
-|[OverlapAnalysis.cpp](./overlapanalysis.cpp)|implementation of some functions in [overlapanalysis.h](./overlapanalysis.h)
+|[overlapAnalysis.cpp](./overlapanalysis.cpp)|implementation of some functions in [overlapanalysis.h](./overlapanalysis.h)
 |[gtoverlapanalysis.cpp](./gtoverlapanalysis.cpp)|google test for [overlapanalysis.h](./overlapanalysis.h)
