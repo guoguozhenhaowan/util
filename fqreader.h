@@ -74,6 +74,10 @@ class FqReader{
          */
         static bool isfq(const std::string& filename);
     
+        /** get just one line from the buf, update the buf if needed
+         */
+        std::string getLine();
+
     private:
 
         /** initialize the FqReader:
@@ -90,10 +94,6 @@ class FqReader{
          */
         void close();
 
-        /** get just one line from the buf, update the buf if needed
-         */
-        std::string getLine();
-        
         /** trim \n, \r or \r\n in the tail of the line
          */
         void clearLineBreaks(char* line);
