@@ -89,7 +89,7 @@ class Stats{
         int getMaxReadLength();
 
         /** get minimum base quality
-         * @retutn minimum base quality
+         * @return minimum base quality
          */
         int getMinBaseQual();
 
