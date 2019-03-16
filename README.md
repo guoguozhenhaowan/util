@@ -51,3 +51,6 @@ utilities
 |[filter.h](./filter.h)|Filter class to do various filter
 |[filter.cpp](./filter.cpp)|implementation of some functions in [filter.h](./filter.h)
 |[gtfilter.cpp](./gtfilter.cpp)|google test for [filter.h](./filter.h)
+|[writer.h](./writer.h)|Writer class to do plain or gz format writting
+|[writer.cpp](./writer.cpp)|implementation of some functions in [writer.h](./writer.h)
+|[gtwriter.cpp](./gtwriter.cpp)|google test for [writer.h](./writer.h)
