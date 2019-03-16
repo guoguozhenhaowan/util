@@ -14,7 +14,7 @@ class StatsTest : public testing::Test{
 };
 
 TEST_F(StatsTest, statRead){
-    const int maxReadInMemory = 1000;
+    const int maxReadInMemory = 10000;
     std::vector<Stats*> l;
     l.reserve(maxReadInMemory + 1);
     l.resize(1);
@@ -23,8 +23,8 @@ TEST_F(StatsTest, statRead){
     int readInMemory = 0;
     while((r = f.read()) != NULL){
         Stats* ts = new Stats(e.getReadLen());
-        ts->setKmerLen(0);
-        ts->setOverRepSampleFreq(0);
+        ts->setKmerLen(6);
+        ts->setOverRepSampleFreq(100);
         ts->allocateRes();
         ts->statRead(r);
         ts->summarize();
@@ -44,6 +44,7 @@ TEST_F(StatsTest, statRead){
             }
             l.resize(1);
             break;
+            readInMemory = 0;
         }
     }
     std::ofstream fw("test.json");

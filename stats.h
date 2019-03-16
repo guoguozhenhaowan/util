@@ -2,6 +2,7 @@
 #define STATS_H
 
 #include <map>
+#include <iomanip>
 #include <memory>
 #include <vector>
 #include <cstdio>
@@ -59,6 +60,7 @@ class Stats{
          */ 
         inline void setKmerLen(const int kLen){
             this->kmerLen = kLen;
+            this->kmerBufLen = (1 << (this->kmerLen * 2));
         }
 
         /** Set over representation analysis sampling frequence
@@ -225,11 +227,10 @@ class Stats{
         void extendBuffer(int newBufLen);
        
         /** make html popup value of kmer table
-         * @param i row index 
-         * @param j col index
+         * @param n the integer representation of kmer
          * @return popup value of kmer table
          */
-        std::string makeKmerTD(int i, int j);
+        std::string makeKmerTD(size_t n);
         
         /** delete this->OverRepDist recources */ 
         void deleteOverRepSeqDist();

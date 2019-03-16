@@ -58,10 +58,14 @@ class Read{
          */
         Read(const std::string& rname, const Seq& oseq, const std::string& rstrand) :
             name(rname), seq(oseq), strand(rstrand), hasQuality(false){ }
+        
         /** Read constructor
          * @param r Read object
          */
         Read(const Read& r) : name(r.name), seq(r.seq), strand(r.strand), quality(r.quality), hasQuality(r.hasQuality){}
+        
+        /** Read destructor */
+        ~Read(){};
 
         /** convert quality in phread64 based encoding into phread33 based encoding */
         inline void convertPhread64To33(){

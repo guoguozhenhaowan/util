@@ -9,14 +9,14 @@ Stats::Stats(const int& estReadLen){
     this->maxQual = 33;
     this->evaluatedSeqLen = estReadLen;
     this->cycles = estReadLen;
-    this->bufLen = estReadLen + 1024;
+    this->bufLen = estReadLen + 100;
     this->q20Total = 0;
     this->q30Total = 0;
     this->summarized = false;
     this->kmerMax = 0;
     this->kmerMin = 0;
     this->kmerLen = 5;
-    this->kmerBufLen = 2 << (this->kmerLen * 2);
+    this->kmerBufLen = 1 << (this->kmerLen * 2);
     this->lengthSum = 0;
     this->overRepSampleFreq = 100;
 }
@@ -223,8 +223,8 @@ void Stats::statRead(Read* r){
     if(this->bufLen < len){
         this->extendBuffer(std::max(len + 100, (int)(len * 1.5)));
     }
-    const std::string seqStr = r->seq.seqStr.c_str();
-    const std::string qualStr = r->quality.c_str();
+    const std::string seqStr = r->seq.seqStr;
+    const std::string qualStr = r->quality;
     int kmerVal = -1;
     for(int i = 0; i < len; ++i){
         char base = seqStr[i];
@@ -255,23 +255,23 @@ void Stats::statRead(Read* r){
                 ++this->kmer[kmerVal];
             }
         }
-
-        if(this->overRepSampleFreq){
-            if(this->reads % this->overRepSampleFreq == 0){
-                std::set<int> steps = {10, 20, 40, 100, std::min(150, this->evaluatedSeqLen - 2)};
-                for(auto step: steps){
-                    for(int i = 0; i < len - step; i += step){
-                        std::string seq = seqStr.substr(i, step);
-                        if(this->overRepSeq.count(seq) > 0){
-                            ++this->overRepSeq[seq];
-                        }else{
-                            for(int p = i; p < seq.length() + i && p < this->evaluatedSeqLen; ++p){
-                                if(this->overRepSeqDist.find(seq) == this->overRepSeqDist.end()){
-                                    this->overRepSeqDist[seq] = new size_t[this->evaluatedSeqLen];
-                                    std::memset(this->overRepSeqDist[seq], 0, sizeof(size_t) * this->evaluatedSeqLen);
-                                }
-                                ++this->overRepSeqDist[seq][p];
+    }
+    
+    if(this->overRepSampleFreq){
+        if(this->reads % this->overRepSampleFreq == 0){
+            std::set<int> steps = {10, 20, 40, 100, std::min(150, this->evaluatedSeqLen - 2)};
+            for(auto step: steps){
+                for(int j = 0; j < len - step; j += step){
+                    std::string seq = seqStr.substr(j, step);
+                    if(this->overRepSeq.count(seq) > 0){
+                        ++this->overRepSeq[seq];
+                    }else{
+                        for(int p = j; p < seq.length() + j && p < this->evaluatedSeqLen; ++p){
+                            if(this->overRepSeqDist.find(seq) == this->overRepSeqDist.end()){
+                                this->overRepSeqDist[seq] = new size_t[this->evaluatedSeqLen];
+                                std::memset(this->overRepSeqDist[seq], 0, sizeof(size_t) * this->evaluatedSeqLen);
                             }
+                            ++this->overRepSeqDist[seq][p];
                         }
                     }
                 }
@@ -406,19 +406,17 @@ void Stats::reportJson(std::ofstream& ofs, std::string padding){
     }
     ofs << padding << "\t}";
     //KMER counting(optional)
+    std::string maxKmerInt = std::to_string(this->kmerMax);
+    int maxWidth = maxKmerInt.length();
     if(this->kmerLen){
         ofs << ",\n";
         ofs << padding << "\t" << "\"kmer_count\": {\n";
-        for(size_t i = 0; i < (2 << (this->kmerLen * 2)); ++i){
+        for(size_t i = 0; i < this->kmerBufLen; ++i){
             std::string seq = Evaluator::int2seq(i, this->kmerLen);
-            ofs << padding << "\t\t\"" << seq << "\":" << this->kmer[i];
-            if(i != (2 << this->kmerLen) - 1){
-                ofs << ",";
-            }
-            if(i != (2 << (this->kmerLen * 2)) - 1){
-                ofs << ",\n";
+            if(i % (1 << this->kmerLen)){
+                ofs << "\"" << seq << "\":" << std::left << std::setw(maxWidth + 1) << std::to_string(this->kmer[i]) +",";
             }else{
-                ofs << "\n";
+                ofs << "\n" << padding << "\t\t\"" << seq << "\":" << std::left << std::setw(maxWidth + 1) << std::to_string(this->kmer[i]) + ",";
             }
         }
         ofs << padding << "\t}";
@@ -609,16 +607,17 @@ void Stats::reportHtmlKmer(std::ofstream& ofs, std::string filteringType, std::s
     ofs << "<tr>";
     ofs << "<td></td>";
     // the heading row
-    for(int h = 0; h < (2 << this->kmerLen); ++h){
+    for(int h = 0; h < (1 << this->kmerLen); ++h){
         ofs << "<td style='color:#333333'>" << std::to_string(h + 1) << "</td>";
     }
     ofs << "</tr>\n";
     // content
-    for(int i = 0; i < (2 << this->kmerLen); ++i){
+    size_t n = 0;
+    for(size_t i = 0; i < (1 << this->kmerLen); ++i){
         ofs << "<tr>";
         ofs << "<td style='color:#333333'>" << std::to_string(i + 1) << "</td>";
-        for(int j = 0; j < (2 << this->kmerLen); ++j){
-            ofs << this->makeKmerTD(i, j);
+        for(int j = 0; j < (1 << this->kmerLen); ++j){
+            ofs << this->makeKmerTD(n++);
         }
         ofs << "</tr>\n";
     }
@@ -626,10 +625,10 @@ void Stats::reportHtmlKmer(std::ofstream& ofs, std::string filteringType, std::s
     ofs << "</div>\n";
 }
 
-std::string Stats::makeKmerTD(int i, int j){
-    std::string seq = Evaluator::int2seq(i * j, this->kmerLen);
+std::string Stats::makeKmerTD(size_t n){
+    std::string seq = Evaluator::int2seq(n, this->kmerLen);
     double meanBases = (double)(this->bases + 1) / this->kmerBufLen;
-    double prop = this->kmer[i * j] / meanBases;
+    double prop = this->kmer[n] / meanBases;
     double frac = 0.5;
     if(prop > 2.0){
         frac = (prop-2.0)/20.0 + 0.5;
@@ -637,7 +636,6 @@ std::string Stats::makeKmerTD(int i, int j){
     else if(prop< 0.5){
         frac = prop;
     }
-
     frac = std::max(0.01, std::min(1.0, frac));
     int r = (1.0-frac) * 255;
     int g = r;
@@ -656,7 +654,7 @@ std::string Stats::makeKmerTD(int i, int j){
         ss << "0";
     }
     ss << std::hex << b;
-    ss << std::dec << "' title='"<< seq << ": " << this->kmer[i * j] << "\n" << prop << " times as mean value'>";
+    ss << std::dec << "' title='"<< seq << ": " << this->kmer[n] << "\n" << prop << " times as mean value'>";
     ss << seq << "</td>";
     return ss.str();
 }
@@ -871,7 +869,7 @@ Stats* Stats::merge(std::vector<Stats*>& list){
 
         if(s->kmerLen){
             for(int j = 0; j < s->kmerBufLen; ++j){
-                s->kmer[i] += list[i]->kmer[i];
+                s->kmer[j] += list[i]->kmer[j];
             }
         }
 
