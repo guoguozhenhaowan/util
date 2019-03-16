@@ -4,9 +4,10 @@
 class StatsTest : public testing::Test{
     protected:
         void SetUp() override{
-            s.setKmerLen(0);
-            s.setOverRepSampleFreq(0);
+            s.setKmerLen(6);
+            s.setOverRepSampleFreq(100);
             s.allocateRes();
+            s.initOverRepSeq(e); // must do initOverRepSeq before doing ORA
         }
         Evaluator e = {"./testdata/R1.adaptor.fq.gz", 0};
         FqReader f = {"./testdata/R1.adaptor.fq.gz"};
@@ -14,44 +15,17 @@ class StatsTest : public testing::Test{
 };
 
 TEST_F(StatsTest, statRead){
-    const int maxReadInMemory = 10000;
-    std::vector<Stats*> l;
-    l.reserve(maxReadInMemory + 1);
-    l.resize(1);
     Read* r = NULL;
-    Stats* fs = NULL;
-    int readInMemory = 0;
     while((r = f.read()) != NULL){
-        Stats* ts = new Stats(e.getReadLen());
-        ts->setKmerLen(6);
-        ts->setOverRepSampleFreq(100);
-        ts->allocateRes();
-        ts->statRead(r);
-        ts->summarize();
-        l.push_back(ts);
-        ++readInMemory;
+        s.statRead(r);
         delete r;
-        if(readInMemory >= maxReadInMemory){
-            if(!fs){
-                l[0] = l[l.size()-1];
-                l.resize(l.size() -1);
-            }else{
-                l[0] = fs;
-            }
-            fs = Stats::merge(l);
-            for(size_t i = 1; i < l.size(); ++i){
-                delete l[i];
-            }
-            l.resize(1);
-            break;
-            readInMemory = 0;
-        }
     }
+    s.summarize();
     std::ofstream fw("test.json");
-    fs->reportJson(fw, " ");
+    s.reportJson(fw, " ");
     fw.close();
     fw.open("test.html");
-    fs->reportHtml(fw, "Before Filtering", "TestLibrary");
+    s.reportHtml(fw, "Before Filtering", "TestLibrary");
     fw.close();
 }
 

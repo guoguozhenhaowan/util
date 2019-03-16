@@ -43,11 +43,11 @@ class Stats{
         size_t *cycleTotalQual;        ///< total quality of each cycle
         size_t *kmer;                  ///< kmer count array 
         int overRepSampleFreq = 100;   ///< over representation analysis sampling frequence, default 100
+        std::map<std::string, size_t> overRepSeq;     ///< map of <repSeq, repSeqCount>, shoulde be initialized by Evaluator before statRead
         std::map<std::string, double*> qualityCurves; ///< map of <statName, statNumber*> statNumber is a pointer to array of statistics of each cycle quality 
         std::map<std::string, double*> contentCurves; ///< map of <statName, statNumber*> statNumber is a pointer to array of statistics of each cycle content
-        std::map<std::string, size_t> overRepSeq;     ///< map of <repSeq, repSeqCount>
         std::map<std::string, size_t*> overRepSeqDist;///< map of <repseq, dist*>
-
+    
     public:
         /** Construct a Stats object of fq with length estReadLen */
         Stats(const int& estReadLen);
@@ -73,6 +73,11 @@ class Stats{
         /** Allocate resources for a Stats object */
         void allocateRes();
         
+        /** Initialize overrepresentation analysis
+         * @param fqEva Evaluator object  used to compute representatin sequences
+         */
+        void initOverRepSeq(Evaluator& fqEva);
+
         /** get minimum read length
          * @return minimum read length
          */

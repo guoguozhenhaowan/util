@@ -260,19 +260,15 @@ void Stats::statRead(Read* r){
     if(this->overRepSampleFreq){
         if(this->reads % this->overRepSampleFreq == 0){
             std::set<int> steps = {10, 20, 40, 100, std::min(150, this->evaluatedSeqLen - 2)};
-            for(auto step: steps){
-                for(int j = 0; j < len - step; j += step){
+            for(auto& step: steps){
+                for(int j = 0; j < len - step; ++j){
                     std::string seq = seqStr.substr(j, step);
                     if(this->overRepSeq.count(seq) > 0){
                         ++this->overRepSeq[seq];
-                    }else{
                         for(int p = j; p < seq.length() + j && p < this->evaluatedSeqLen; ++p){
-                            if(this->overRepSeqDist.find(seq) == this->overRepSeqDist.end()){
-                                this->overRepSeqDist[seq] = new size_t[this->evaluatedSeqLen];
-                                std::memset(this->overRepSeqDist[seq], 0, sizeof(size_t) * this->evaluatedSeqLen);
-                            }
                             ++this->overRepSeqDist[seq][p];
                         }
+                        j += step;
                     }
                 }
             }
@@ -877,10 +873,6 @@ Stats* Stats::merge(std::vector<Stats*>& list){
             for(auto& e: s->overRepSeq){
                 s->overRepSeq[e.first] += list[i]->overRepSeq[e.first];
                 for(int j = 0; j < s->evaluatedSeqLen; ++j){
-                    if(s->overRepSeqDist.find(e.first) == s->overRepSeqDist.end()){
-                        s->overRepSeqDist[e.first] = new size_t[s->evaluatedSeqLen];
-                        std::memset(s->overRepSeqDist[e.first], 0, sizeof(size_t) * s->evaluatedSeqLen);
-                    }
                     s->overRepSeqDist[e.first][j] += list[i]->overRepSeqDist[e.first][j];
                 }
             }
@@ -889,6 +881,15 @@ Stats* Stats::merge(std::vector<Stats*>& list){
 
     s->summarize();
     return s;
+}
+
+void Stats::initOverRepSeq(Evaluator& fqEva){
+    fqEva.computeOverRepSeq(this->overRepSeq);
+    for(auto& e : this->overRepSeq){
+        e.second = 0;
+        this->overRepSeqDist[e.first] = new size_t[this->evaluatedSeqLen];
+        std::memset(this->overRepSeqDist[e.first], 0, sizeof(size_t) * this->evaluatedSeqLen);
+    }
 }
 
 void Stats::deleteOverRepSeqDist(){
