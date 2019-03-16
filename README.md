@@ -16,6 +16,7 @@ utilities
 
 |Sources|Contents
 |----|-----------
+|[tbit.cpp](./tbit.cpp)|convert any numbet to binary bits
 |[extractfa.cpp](./extractfa.cpp)|extract fasta by fixed pattern in name
 |[fa2bed.cpp](./fa2bed.cpp)|fasta to bed
 |[fuzzy.h](./fuzzy.h)|c++ bitap search template
