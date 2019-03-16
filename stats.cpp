@@ -3,6 +3,10 @@
 Stats::Stats(const int& estReadLen){
     this->reads = 0;
     this->bases = 0;
+    this->minReadLen = 0;
+    this->maxReadLen = 0;
+    this->minQual = 127;
+    this->maxQual = 33;
     this->evaluatedSeqLen = estReadLen;
     this->cycles = estReadLen;
     this->bufLen = estReadLen + 1024;
@@ -129,14 +133,20 @@ void Stats::summarize(bool forced){
     }
 
     // cycle and total bases
+    bool getMinReadLen = false;
     int c = 0;
     for(c = 0; c < this->bufLen; ++c){
         this->bases += this->cycleTotalBase[c];
+        if(!getMinReadLen && c > 1 && this->cycleTotalBase[c] < this->cycleTotalBase[c-1]){
+            this->minReadLen = c;
+            getMinReadLen = true;
+        }
         if(this->cycleTotalBase[c] == 0){
             break;
         }
     }
     this->cycles = c;
+    this->maxReadLen = c;
 
     // Q20, Q30, base content
     for(int i = 0; i < 8; ++i){
@@ -166,8 +176,12 @@ void Stats::summarize(bool forced){
         double* contentCurve = new double[this->cycles];
         std::memset(contentCurve, 0, sizeof(double) * this->cycles);
         for(int j = 0; j < this->cycles; ++j){
-            qualCurve[j] = (double)this->cycleBaseQual[b][j] / (double)this->cycleBaseContents[b][j];
-            contentCurve[j] = (double)this->cycleBaseContents[b][j] / (double)this->cycleBaseContents[b][j];
+            if(this->cycleBaseContents[b][j] == 0){
+                qualCurve[j] = meanQualCurve[j];
+            }else{
+                qualCurve[j] = (double)this->cycleBaseQual[b][j] / (double)this->cycleBaseContents[b][j];
+            }
+            contentCurve[j] = (double)this->cycleBaseContents[b][j] / (double)this->cycleTotalBase[j];
         }
         this->qualityCurves[std::string(1, nucleotides[i])] = qualCurve;
         this->contentCurves[std::string(1, nucleotides[i])] = contentCurve;
@@ -218,13 +232,15 @@ void Stats::statRead(Read* r){
         char bIndex = base & 0x07;
         const char q20 = '5';
         const char q30 = '?';
-        if(qual > q20){
-            ++(this->cycleQ20Bases[bIndex][i]);
-        }
+        this->minQual = std::min(qual - 33, this->minQual);
+        this->maxQual = std::max(qual - 33, this->maxQual);
         if(qual > q30){
             ++this->cycleQ20Bases[bIndex][i];
             ++this->cycleQ30Bases[bIndex][i];
+        }else if(qual > q20){
+            ++(this->cycleQ20Bases[bIndex][i]);
         }
+
         ++this->cycleBaseContents[bIndex][i];
         this->cycleBaseQual[bIndex][i] += (qual - 33);
         ++this->cycleTotalBase[i];
@@ -263,6 +279,31 @@ void Stats::statRead(Read* r){
         }
     }
     ++this->reads;
+}
+
+int Stats::getMinReadLength(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->minReadLen;
+}
+
+int Stats::getMaxReadLength(){
+    return this->getCycles();
+}
+
+int Stats::getMinBaseQual(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->minQual;
+}
+
+int Stats::getMaxBaseQual(){
+    if(!this->summarized){
+        this->summarize();
+    }
+    return this->maxQual;
 }
 
 int Stats::getCycles(){
@@ -350,7 +391,7 @@ void Stats::reportJson(std::ofstream& ofs, std::string padding){
     for(int i = 0; i < 6; ++i){
         std::string name = contentNames[i];
         double* curve = this->contentCurves[name];
-        ofs << padding << "\t\t" << name << "\":[";
+        ofs << padding << "\t\t\"" << name << "\":[";
         for(int c = 0; c < this->cycles; ++c){
             ofs << curve[c];
             if(c != this->cycles - 1){
@@ -363,9 +404,10 @@ void Stats::reportJson(std::ofstream& ofs, std::string padding){
         }
         ofs << "\n";
     }
-    ofs << padding << "\t},\n";
+    ofs << padding << "\t}";
     //KMER counting(optional)
     if(this->kmerLen){
+        ofs << ",\n";
         ofs << padding << "\t" << "\"kmer_count\": {\n";
         for(size_t i = 0; i < (2 << (this->kmerLen * 2)); ++i){
             std::string seq = Evaluator::int2seq(i, this->kmerLen);
@@ -379,10 +421,11 @@ void Stats::reportJson(std::ofstream& ofs, std::string padding){
                 ofs << "\n";
             }
         }
-        ofs << padding << "\t},\n";
+        ofs << padding << "\t}";
     }
     // over represented seqs(optional)
     if(this->overRepSampleFreq){
+        ofs << ",\n";
         ofs << padding << "\t\"overrepresented_sequences\": {\n";
         bool first = true;
         for(auto& e : this->overRepSeq){
@@ -398,7 +441,7 @@ void Stats::reportJson(std::ofstream& ofs, std::string padding){
         }
         ofs << padding << "\t}\n";
     }
-    ofs << padding << "},\n";
+    ofs << padding << "\n}\n";
 }
 
 template<typename T>
@@ -624,7 +667,7 @@ void Stats::reportHtmlQuality(std::ofstream& ofs, std::string filteringType, std
     std::string divName = util::replace(subsection, " ", "_");
     divName = util::replace(divName, ":", "_");
     std::string title = "";
-
+    ofs << "<script type=\"text/javascript\" src=\"./plotly.js\"></script>\n";
     ofs << "<div class='subsection_title'><a title='click to hide/show' onclick=showOrHide('" << divName << "')>" + subsection + "</a></div>\n";
     ofs << "<div id='" + divName + "'>\n";
     ofs << "<div class='sub_section_tips'>Value of each position will be shown on mouse over.</div>\n";
@@ -679,11 +722,15 @@ void Stats::reportHtmlQuality(std::ofstream& ofs, std::string filteringType, std
     }
     json_str += "];\n";
     json_str += "var layout={title:'" + title + "', xaxis:{title:'position'";
+    json_str += ", tickmode: 'auto', nticks: '";
+    json_str += std::to_string(this->cycles/5) + "'";
     // use log plot if it's too long
     if(this->isLongRead()) {
         json_str += ",type:'log'";
     }
-    json_str += "}, yaxis:{title:'quality'}};\n";
+    json_str += "},";
+    json_str += "yaxis:{title:'quality', tickmode: 'auto', nticks: '20'";
+    json_str += "}};\n";
     json_str += "Plotly.newPlot('plot_" + divName + "', data, layout);\n";
 
     ofs << json_str;
@@ -766,11 +813,15 @@ void Stats::reportHtmlContents(std::ofstream& ofs, std::string filteringType, st
     }
     json_str += "];\n";
     json_str += "var layout={title:'" + title + "', xaxis:{title:'position'";
+    json_str += ", tickmode: 'auto', nticks: '";
+    json_str += std::to_string(this->cycles/5) + "'";
     // use log plot if it's too long
     if(this->isLongRead()) {
         json_str += ",type:'log'";
     }
-    json_str += "}, yaxis:{title:'base content ratios'}};\n";
+    json_str += "}, yaxis:{title:'base content ratios'";
+    json_str += ", tickmode: 'auto', nticks: '20', range: ['0.0', '1.0']";
+    json_str += "}};\n";
     json_str += "Plotly.newPlot('plot_" + divName + "', data, layout);\n";
 
     ofs << json_str;
@@ -779,7 +830,7 @@ void Stats::reportHtmlContents(std::ofstream& ofs, std::string filteringType, st
     delete[] x;
 }
 
-Stats* Stats::merge(std::vector<Stats*>& list, const int& estReadLen){
+Stats* Stats::merge(std::vector<Stats*>& list){
     if(list.size() == 0){
         return NULL;
     }
@@ -787,28 +838,29 @@ Stats* Stats::merge(std::vector<Stats*>& list, const int& estReadLen){
     int c = 0;
     int kl = 0;
     int smp = 0;
+    int rdl = 0;
     for(int i = 0; i < list.size(); ++i){
         list[i]->summarize();
         c = std::max(c, list[i]->getCycles());
         kl = std::max(kl, list[i]->kmerLen);
         smp = std::max(smp, list[i]->overRepSampleFreq);
+        rdl = std::max(rdl, list[i]->getMaxReadLength());
     }
 
-    Stats* s = new Stats(estReadLen);
+    Stats* s = new Stats(rdl);
     s->setKmerLen(kl);
     s->setOverRepSampleFreq(smp);
     s->allocateRes();
-
     for(int i = 0; i < list.size(); ++i){
         int curCycles = list[i]->getCycles();
         s->reads += list[i]->reads;
         s->lengthSum += list[i]->lengthSum;
         for(int j = 0; j < 8; ++j){
             for(int k = 0; k < c && k < curCycles; ++k){
-                s->cycleQ30Bases[i][j] += list[i]->cycleQ30Bases[i][j];
-                s->cycleQ20Bases[i][j] += list[i]->cycleQ20Bases[i][j];
-                s->cycleBaseContents[i][j] += list[i]->cycleBaseContents[i][j];
-                s->cycleBaseQual[i][j] += list[i]->cycleBaseQual[i][j];
+                s->cycleQ30Bases[j][k] += list[i]->cycleQ30Bases[j][k];
+                s->cycleQ20Bases[j][k] += list[i]->cycleQ20Bases[j][k];
+                s->cycleBaseContents[j][k] += list[i]->cycleBaseContents[j][k];
+                s->cycleBaseQual[j][k] += list[i]->cycleBaseQual[j][k];
             }
         }
 

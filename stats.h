@@ -16,22 +16,26 @@
 class Stats{
         size_t reads;                  ///< total reads
         size_t bases;                  ///< total bases
+        int minReadLen;                ///< minimal read length
+        int maxReadLen;                ///< maximum read length
+        int minQual;                   ///< minimum base quality
+        int maxQual;                   ///< maximum base quality
         int evaluatedSeqLen;           ///< estimated read length
         int cycles;                    ///< maximum cycle
         int bufLen;                    ///< buffer length to store a static item of one read
-        size_t q20Total;               ///< number of bases with quality equal or greater than 20 
-        size_t q30Total;               ///< number of bases with quality equal or greater than 30 
+        size_t q20Total;               ///< number of bases with quality greater than 20 
+        size_t q30Total;               ///< number of bases with quality greater than 30 
         bool summarized;               ///< summarized or not, if this->summarize() called, then this->summarized = true
         size_t kmerMax;                ///< the maximum kmerLen kmer
         size_t kmerMin;                ///< the minimum kmerLen kmer 
         int kmerLen = 5;               ///< kmer length to calculate, default 5
         int kmerBufLen;                ///< kmer statistic array length, just equal 2 << (2 * this->kmerLen)
         size_t lengthSum;              ///< total length of reads
-        size_t q20Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 20
-        size_t q30Bases[8];            ///< each base(ATCG) counts with quality equal or greater than 30 
+        size_t q20Bases[8];            ///< each base(ATCG) counts with quality greater than 20
+        size_t q30Bases[8];            ///< each base(ATCG) counts with quality greater than 30 
         size_t baseContents[8];        ///< each base(ATCG) counts 
-        size_t *cycleQ20Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 20 
-        size_t *cycleQ30Bases[8];      ///< each base(ATCG) counts at each cycle with quality equal or greater than 30 
+        size_t *cycleQ20Bases[8];      ///< each base(ATCG) counts at each cycle with quality greater than 20 
+        size_t *cycleQ30Bases[8];      ///< each base(ATCG) counts at each cycle with quality greater than 30 
         size_t *cycleBaseContents[8];  ///< each base(ATCG) counts at each cycle 
         size_t *cycleBaseQual[8];      ///< each base(ATCG) quality at each cycle 
         size_t *cycleTotalBase;        ///< total base counts of each cycle
@@ -67,6 +71,26 @@ class Stats{
         /** Allocate resources for a Stats object */
         void allocateRes();
         
+        /** get minimum read length
+         * @return minimum read length
+         */
+        int getMinReadLength();
+
+        /** get maximum read length
+         * @return maximum read length
+         */
+        int getMaxReadLength();
+
+        /** get minimum base quality
+         * @retutn minimum base quality
+         */
+        int getMinBaseQual();
+
+        /** get maximum base quality
+         * @return maximum base quality
+         */
+        int getMaxBaseQual();
+         
         /** get cycle number
          * @return cycle number 
          */
@@ -82,13 +106,13 @@ class Stats{
          */
         size_t getBases();
         
-        /** get number of bases with quality equal or greater than 20 
-         * @return number of bases with quality equal or greater than 20
+        /** get number of bases with quality greater than 20 
+         * @return number of bases with quality greater than 20
          */
         size_t getQ20();
 
-        /** get number of bases with quality equal or greater than 30  
-         * @return number of bases with quality equal or greater than 30 
+        /** get number of bases with quality greater than 30  
+         * @return number of bases with quality greater than 30 
          */
         size_t getQ30();
 
@@ -104,10 +128,9 @@ class Stats{
 
         /** merge a list of Stats objects into one
          * @param list a list of Stats objects
-         * @param estReadLen estimated read length
          * @return a merged Stats object
          */
-        static Stats* merge(std::vector<Stats*>& list, const int& estReadLen);
+        static Stats* merge(std::vector<Stats*>& list);
         
         /** output Stats object to std::ostream
          * @param os std::ostream object
