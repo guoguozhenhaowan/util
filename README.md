@@ -4,6 +4,8 @@ utilities
 |---------|-----------
 |[ascii.characters.for.table](./ascii.characters.for.table)|ascii code for table drawing
 |[ATCG.Binary](./ATCG.Binary)|Nucleotides to binary bits
+|[plotly.js](./plotly.js)|javascripts to display motive tables
+|[Doxygen](./Doxygen)|doxygen configure file for this repo
 
 |Scripts|Functions
 |-------|---------
@@ -34,4 +36,10 @@ utilities
 |[nucleotidetree.h](./nucleotidetree.h)|NucleotideNode and NucleotideTree class to represent nucleotide and nucleotide sequences
 |[nucleotidetree.cpp](./nucleotidetree.cpp)|implementation of some functions in [nucleotidetree.h](./nucleotidetree.h)
 |[gtnucleotidetree.cpp](./gtnucleotidetree.cpp)|google test for [nucleotidetree.h](./nucleotidetree.h)
-
+|[knownadapters.h](./knownadapters.h)|known illumina adapters(with 3' end 1 base off)
+|[evaluator.h](./evaluator.h)|Evaluator class to evaluate representation sequence, read length, read number, adapter sequence, etc|
+|[evaluator.cpp](./evaluator.cpp)|implementation of some functions in [evaluator.h](./evaluator.h)
+|[gtevaluator.cpp](./gtevaluator.cpp)|google test for [evaluator.h](./evaluator.h)
+|[stats.h](./stats.h)|Stats class to do fastq QC, Kmer, ORSA read by read or merge Stats\* list etc
+|[stats.cpp](./stats.cpp)|implementation of some functions in [stats.h](./stats.h)
+|[gtstats.cpp](./gtstats.cpp)|google test for [stats.h](./stats.h)
