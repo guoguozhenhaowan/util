@@ -3,9 +3,13 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <cstring>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <map>
+#include "util.h"
 
 /** struct to store various quality threshold dependent fastq read cut/trim options */
 struct QualityCutOptions{
@@ -153,7 +157,7 @@ struct ForceTrimOptions{
 };
 
 /** struct to store output file split options */
-class SplitOptions{
+struct SplitOptions{
     bool enabled;         ///< enable output file split
     int number;           ///< split file numbers of a file
     size_t size;          ///< number of lines of each split file
@@ -208,6 +212,20 @@ struct Options{
     OverrepresentedSequenceAnalysisOptions overRepAna; ///< OverrepresentedSequenceAnalysisOptions object
     LowComplexityFilterOptions complexityFilter;       ///< LowComplexityFilterOptions object
     IndexFilterOptions indexFilter;                    ///< IndexFilterOptions object
+    SplitOptions split;                                ///< SplitOptions object
+    
+    // fuctions of Options
+    /** Construct a Options object */
+    Options();
+    void init();
+    bool isPaired();
+    bool validate();
+    bool adapterCutEnabled();
+    std::string getAdapter1();
+    std::string getAdapter2();
+    void initIndexFilter(const std::string& blacklistFile1, const std::string& blacklistFile2, int threshold = 0);
+    std::vector<std::string> makeListFromFileByLine(const std::string& filename);
+    bool shallDetectAdapter(bool isR2 = false);
 };
 
 #endif
