@@ -16,8 +16,6 @@ Options::Options(){
     this->interleavedInput = false;
     this->insertSizeMax = 512;
     this->overlapDiffLimit = 5;
-    this->seqLen1 = 151;
-    this->seqLen2 = 151;
     this->verbose = false;
 }
 

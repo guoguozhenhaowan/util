@@ -1,22 +1,22 @@
 #include "threadconfig.h"
 
-ThreadConfig::ThreadConfig(ThreadOpt* opt, FilterOpt* fopt, int threadId, bool paired){
+ThreadConfig::ThreadConfig(Options* opt, FilterOpt* fopt, int threadId, bool paired){
     this->opt = opt;
     this->threadId = threadId;
     this->workingSplit = threadId;
     this->currentSplitReads = 0;
-    this->preStats1 = new Stats(this->opt->estimatedReadLen);
-    this->postStats1 = new Stats(this->opt->estimatedReadLen);
+    this->preStats1 = new Stats(this->opt->seqLen1);
+    this->postStats1 = new Stats(this->opt->seqLen1);
     if(paired){
-        this->preStats2 = new Stats(this->opt->estimatedReadLen);
-        this->postStats2 = new Stats(this->opt->estimatedReadLen);
+        this->preStats2 = new Stats(this->opt->seqLen2);
+        this->postStats2 = new Stats(this->opt->seqLen2);
     }else{
         this->preStats2 = NULL;
         this->postStats2 = NULL;
     }
     this->writer1 = NULL;
     this->writer2 = NULL;
-    this->filterResult = new FilterResult(this->fopt, paired);
+    this->filterResult = new FilterResult(
     this->canBeStopped = false;
 }
 
@@ -106,4 +106,3 @@ void ThreadConfig::markProcessed(size_t readNum){
     if(this->currentSplitReads >= this->opt->splitSize){
 
     }
-

@@ -10,82 +10,51 @@
 #include "read.h"
 #include "util.h"
 #include "fqreader.h"
+#include "options.h"
 #include "knownadapters.h"
 #include "nucleotidetree.h"
 
 /** class to hold various functions to evaluate sequence information */
 class Evaluator{
-        std::string fqFile;   ///< fastq readfilename
-        int trimLen;          ///< trim length from 3' end before evaluation
-        int readLen;          ///< maximum read length
-        size_t readNum;       ///< estimated read numbers
-        bool twoColorSystem;  ///< estimated this fastq come frm a two color sequencer
-        std::string adapter;  ///< estimated adapter sequence
-        bool illuminaAdapter; ///< is the adapter estimated is a standard known illumina adapter
     public:
-        /** Construct a evaluator with read1/2 filename
-         * @param trlen trim length from 3' end before evaluation
-         * @param filename fastq filename
+        /** Construct a evaluator
+         * @param popt pointer to Options object
          */
-        Evaluator(const std::string& filename, const int& trlen) : trimLen(trlen), fqFile(filename){
-            this->readLen = 0;
-            this->readNum = 0;
-            this->twoColorSystem = false;
-            this->illuminaAdapter = false;
-            this->adapter = "";
-            this->evaluateReadLen();
-            this->evaluateReadNum();
-            this->evaluateTwoColorSystem();
-        }
+        Evaluator(Options* popt) : opt(popt){}
         
         /** Destroy a evaluator */
         ~Evaluator(){}
 
-        /** get the estimated read number of this fastq file
-         * @return the estimated read number of this fastq file
+        /** evaluate number of reads in fastq file 
+         * based on at most 512 * 1024 reads and at most 151 * 512 * 1024 bytes read
          */
-        inline size_t getReadNum(){
-            return this->readNum;
-        }
+        void evaluateReadNum();
         
-        /** get the estimated adapter sequence of this fastq file
-         * @return the estimated adapter sequence of this fastq file
+        /** evaluate the adapter sequences based on at most 256*1024 reads or 151 * 256 * 1024 bytes read in
+         * to estimate adapter sequence, there must be at least 10000 valid records read in
+         * @param isR2 the evaluated fq is read2 if true
          */
-        inline std::string getAdapter(){
-            this->evaluateAdapterSeq();
-            return this->adapter;
-        }
-
-        /** whether the adapter estimated is illumina know adapter
-         * @return true if the adapter estimated is illumina know adapter
-         */
-        inline bool isIlluminaAdapter(){
-            return this->illuminaAdapter;
-        }
-
-        /** Test whether the read is sequenced from a TwoColorSystem machine
-         * @return true if the read is sequenced from a TwoColorSystem machine
-         */
-        inline bool isTwoColorSystem(){
-            return this->twoColorSystem;
-        }
+        void evaluateAdapterSeq(bool isR2 = false);
         
-        /** Get the estimated read length of the fastq file
-         * @return the estimated read length of the fastq file
-         */
-        inline int getReadLen(){
-           return this->readLen;
-        }
+        /** Evaluate the max read length of read1/2 */
+        void evaluateReadLen();
 
-        /** Evaluate the fastq file over represented sequences based on at most this->readLen * 10000 bases
-         * count subsequences of length in {10, 20, 40, 100, min(150, this->readLen -2)} in each reads(total bases less than this->readLen * 10000)
+        /** Compute the maximum read length based on the first 1000 reads
+         * @param filename fastq file name
+         * @return the maximum read length ovserved
+         */
+        int computeReadLen(const std::string& filename);
+        
+        /** Evaluate the fastq file over represented sequences based on at most 151 * 10000 bases
+         * count subsequences of length in {10, 20, 40, 100, min(150, 151 -2)} in each reads(total bases less than 151 * 10000)
          * a subsequence will be considered as over represented if 
-         * (length >= this->readLen - 1 && count >= 3) || (length >= 100 && count >= 5) || 
+         * (length >= 151 - 1 && count >= 3) || (length >= 100 && count >= 5) || 
          * (length >= 40 && count >= 20) || (length >= 20 && count >= 100 || (length >= 10 && count >= 500)
          * remove substrings in the map if the count of substring is less than 10 * count of the string contains it
+         * @param filename fastq file to evaluate ORS
          * @param hotSeqs map to store over represented sequences
          */ 
-        void computeOverRepSeq(std::map<std::string, size_t>& hotSeqs);
+        void computeOverRepSeq(const std::string& filename, std::map<std::string, size_t>& hotSeqs);
 
         /** Match a sequence seq agains known illumina adapters stored in knownadapters.h
          * seq length must be equal or greater than the matched adapter 
@@ -116,13 +85,9 @@ class Evaluator{
          */
         static int seq2int(const std::string& seq, int pos, int seqLen, int lastVal = -1);
 
-    private:
-        /** evaluate number of reads in fastq file
-         * based on at most 512 * 1024 reads and at most this->readLen * 512 * 1024 bytes read
-         */
-        void evaluateReadNum();
+        Options *opt;         ///< pointer to Options object
 
-        /** evaluate the adapter sequences based on at most 256*1024 reads or this->readLen * 256 * 1024 bytes read in
+        /** evaluate the adapter sequences based on at most 256*1024 reads or 151 * 256 * 1024 bytes read in
          * to estimate adapter sequence, there must be at least 10000 valid records read in
          */
         void evaluateAdapterSeq();
@@ -131,9 +96,6 @@ class Evaluator{
          * which corresponding to NEXTSEQ500, NEXTSEQ550 and NOVASEQ machine
          */
         void evaluateTwoColorSystem();
-        
-        /** Evaluate the max read length of a fastq file */
-        void evaluateReadLen();
         
         /** get adapter sequence from a seed sequence represented by keyLen bits int
          * a seed sequence is a substring of read(trimed with trim) with length keyLen

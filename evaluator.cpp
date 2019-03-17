@@ -62,11 +62,11 @@ std::string Evaluator::int2seq(size_t val, int seqLen){
 }
 
 void Evaluator::evaluateTwoColorSystem(){
-    FqReader fqr(this->fqFile);
+    FqReader fqr(this->opt->in1);
     Read* r = fqr.read();
 
     if(!r){
-        this->twoColorSystem = false;
+        this->opt->est.twoColorSystem = false;
         return;
     }
     // NEXTSEQ500, NEXTSEQ 550, NOVASEQ are two color system and with specific fastq read name pattern
@@ -74,16 +74,25 @@ void Evaluator::evaluateTwoColorSystem(){
        util::starts_with(r->name, "@NB") || 
        util::starts_with(r->name, "@A0")){
        delete r;
-       this->twoColorSystem = true;
+       this->opt->est.twoColorSystem = true;
        return;
     }
     
     delete r;
-    this->twoColorSystem = false;
+    this->opt->est.twoColorSystem = false;
 }
 
 void Evaluator::evaluateReadLen(){
-    FqReader fqr(this->fqFile);
+    if(!this->opt->in1.empty()){
+        this->opt->est.seqLen1 = Evaluator::computeReadLen(this->opt->in1);
+    }
+    if(!this->opt->in2.empty()){
+        this->opt->est.seqLen2 = Evaluator::computeReadLen(this->opt->in2);
+    }
+}
+
+int Evaluator::computeReadLen(const std::string& filename){
+    FqReader fqr(filename);
     size_t records = 0;
     Read* r = NULL;
 
@@ -93,21 +102,22 @@ void Evaluator::evaluateReadLen(){
         if(!r){
             break;
         }
-        this->readLen = std::max(this->readLen, r->length());
+        seqLen  = std::max(seqLen, r->length());
         ++records;
         delete r;
     }
+    return seqLen;
 }
 
-void Evaluator::computeOverRepSeq(std::map<std::string, size_t>& hotSeqs){
-    FqReader fqr(this->fqFile);
+void Evaluator::computeOverRepSeq(const std::string& filename, std::map<std::string, size_t>& hotSeqs){
+    FqReader fqr(filename);
     std::map<std::string, size_t> seqCounts;
-    const size_t BASE_LIMIT = this->readLen * 10000;
+    const size_t BASE_LIMIT = 151 * 10000;
     size_t records = 0;
     size_t bases = 0;
     Read* r = NULL;
     int rlen = 0;
-    std::set<int> steps = {10, 20, 40, 100, std::min(150, this->readLen - 2)};
+    std::set<int> steps = {10, 20, 40, 100, std::min(150, 151 - 2)};
     std::string seq;
     size_t count;
 
@@ -136,7 +146,7 @@ void Evaluator::computeOverRepSeq(std::map<std::string, size_t>& hotSeqs){
         seq = e.first;
         count = e.second;
 
-        if((seq.length() >= this->readLen - 1 && count >= 3) ||
+        if((seq.length() >= 151 - 1 && count >= 3) ||
            (seq.length() >= 100 && count >= 5)        ||
            (seq.length() >= 40 && count >= 20)        ||
            (seq.length() >= 20 && count >= 100)       ||
@@ -171,9 +181,9 @@ void Evaluator::computeOverRepSeq(std::map<std::string, size_t>& hotSeqs){
 }
 
 void Evaluator::evaluateReadNum(){
-    FqReader fqr(this->fqFile);
+    FqReader fqr(this->opt->in1);
     const size_t READ_LIMIT = 512 * 1024;
-    const size_t BASE_LIMIT = this->readLen * 512 * 1024;
+    const size_t BASE_LIMIT = 151 * 512 * 1024;
     size_t records = 0;
     size_t bases = 0;
     size_t firstReadPos = 0;
@@ -197,22 +207,25 @@ void Evaluator::evaluateReadNum(){
         bases += r->length();
         delete r;
     }
-
-    this->readNum = 0;
+    this->opt->est.readsNum = 0;
     if(reachedEOF){
-        this->readNum = records;
+        this->opt->est.readsNum = records; 
     }else if(records > 1){
         fqr.getBytes(bytesRead, bytesTotal);
         double bytesPerRead = (double)(bytesRead - firstReadPos) / (double) (records - 1);
         // bytesPerRead is a little over estimated due to some reasons unknown
-        this->readNum = (size_t)(bytesTotal * 1.01 / bytesPerRead);
+        this->opt->est.readsNum = (size_t)(bytesTotal * 1.01 / bytesPerRead);
     }
 }
 
-void Evaluator::evaluateAdapterSeq(){
-    FqReader fqr (this->fqFile);
+void Evaluator::evaluateAdapterSeq(bool isR2){
+    std::string filename = this->opt->in1;
+    if(isR2){
+        filename = this->opt->in2;
+    }
+    FqReader fqr (filename);
     const size_t READ_LIMIT = 256 * 1024;
-    const size_t BASE_LIMIT = this->readLen * READ_LIMIT;
+    const size_t BASE_LIMIT = 151 * READ_LIMIT;
     size_t records = 0;
     size_t bases = 0;
     Read** loadedReads = new Read*[READ_LIMIT];
@@ -233,12 +246,12 @@ void Evaluator::evaluateAdapterSeq(){
             delete loadedReads[i];
             loadedReads[i] = NULL;
         }
-        this->adapter = "";
+        this->opt->est.adapter = "";
         return;
     }
     
     // shit the last cycle(s) for evaluation since it is so noisy, especially for illumina data
-    const int shiftTail = std::max(1, this->trimLen);
+    const int shiftTail = std::max(1, this->opt->trim.tail1);
     const int keylen = 10;
     size_t size = 1 << (keylen * 2);
     size_t* counts = new size_t[size];
@@ -334,7 +347,7 @@ void Evaluator::evaluateAdapterSeq(){
         if(diff < 3){
             continue;
         }
-        std::string estAdapter = this->getAdapterWithSeed(key, loadedReads, records, keylen, this->trimLen);
+        std::string estAdapter = this->getAdapterWithSeed(key, loadedReads, records, keylen, this->opt->trim.tail1);
         if(!estAdapter.empty()){
             delete[] counts;
             for(int r = 0; r < records; ++r){
@@ -342,7 +355,7 @@ void Evaluator::evaluateAdapterSeq(){
                 loadedReads[r] = NULL;
             }
             delete[] loadedReads;
-            this->adapter = estAdapter;
+            this->opt->est.adapter = estAdapter;
             return;
         }
     }
@@ -353,7 +366,7 @@ void Evaluator::evaluateAdapterSeq(){
         loadedReads[r] = NULL;
     }
     delete[] loadedReads;
-    this->adapter =  "";
+    this->opt->est.adapter = "";
 }
 
 std::string Evaluator::getAdapterWithSeed(int seed, Read** loadedReads, long records, int keylen, int trim){
@@ -382,7 +395,7 @@ std::string Evaluator::getAdapterWithSeed(int seed, Read** loadedReads, long rec
     std::string matchedAdapter = this->matchKnownAdapter(adapter);
     if(!matchedAdapter.empty()){
         std::map<std::string, std::string> knownAdapters = ::getKnownAdapter();
-        this->illuminaAdapter = true;
+        this->opt->est.illuminaAdapter = true;
         return matchedAdapter;
     }else{
         if(reachedLeaf){

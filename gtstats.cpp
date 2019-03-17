@@ -1,20 +1,20 @@
 #include "stats.h"
 #include "gtest/gtest.h"
 
-class StatsTest : public testing::Test{
-    protected:
-        void SetUp() override{
-            s.setKmerLen(6);
-            s.setOverRepSampleFreq(100);
-            s.allocateRes();
-            s.initOverRepSeq(e); // must do initOverRepSeq before doing ORA
-        }
-        Evaluator e = {"./testdata/R1.adaptor.fq.gz", 0};
-        FqReader f = {"./testdata/R1.adaptor.fq.gz"};
-        Stats s = {e.getReadLen()};
-};
+TEST(StatsTest, statRead){
+    Options opt;
+    opt.in1 = "./testdata/R1.adaptor.fq.gz";
+    opt.overRepAna.enabled = true;
+    opt.overRepAna.sampling = 100;
 
-TEST_F(StatsTest, statRead){
+    Evaluator e(&opt);
+    e.computeOverRepSeq(opt.in1, opt.overRepAna.overRepSeqR1);
+    e.evaluateReadLen();
+    opt.kmer.enabled = true;
+    opt.kmer.kmerLen = 4;
+    Stats s(&opt, false);
+    
+    FqReader f = {"./testdata/R1.adaptor.fq.gz"};
     Read* r = NULL;
     while((r = f.read()) != NULL){
         s.statRead(r);

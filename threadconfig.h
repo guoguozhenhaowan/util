@@ -8,27 +8,12 @@
 #include "util.h"
 #include "stats.h"
 #include "writer.h"
+#include "options.h"
 #include "filterresult.h"
-
-struct ThreadOpt{
-    int estimatedReadLen;
-    bool enableSplit;
-    bool splitByFileNumber;
-    bool splitByFileLines;
-    int thread;
-    int splitNumber;
-    size_t splitSize;
-    bool paired;
-    int compression;
-    int digits;
-    std::string out1;
-    std::string out2;
-};
 
 class ThreadConfig{
     public:
-        ThreadOpt* opt;
-        FilterOpt* fopt;
+        Options* opt;
         Stats* preStats1;
         Stats* preStats2;
         Stats* postStats1;
@@ -43,7 +28,7 @@ class ThreadConfig{
         bool canbeStopped;
 
     public:
-        ThreadConfig(ThreadOpt* opt, int threadId, bool paired = false);
+        ThreadConfig(Option* opt, int threadId, bool paired = false);
         ~ThreadConfig();
 
         inline Stats* getPreStats1(){return this->preStats1;}

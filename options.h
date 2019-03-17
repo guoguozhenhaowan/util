@@ -59,8 +59,8 @@ struct IndexFilterOptions{
 struct OverrepresentedSequenceAnalysisOptions{
     bool enabled;                              ///< enable over representation sequence analyisis
     int sampling;                              ///< sampling frequence for ORA
-    std::map<std::string, long> overRepSeqR1;  ///< over represented sequences count of read1
-    std::map<std::string, long> overRepSeqR2;  ///< over represented sequences count of read2
+    std::map<std::string, size_t> overRepSeqR1;  ///< over represented sequences count of read1
+    std::map<std::string, size_t> overRepSeqR2;  ///< over represented sequences count of read2
     /** construct a OverrepresentedSequenceAnalysisOptions object and set default values */
     OverrepresentedSequenceAnalysisOptions(){
         enabled = false;
@@ -177,31 +177,60 @@ struct SplitOptions{
     }
 };
 
+/** struct to store Kmer analysis options */
+struct KmerOptions{
+    bool enabled;       ///< enable Kmer analysis if true
+    int kmerLen;        ///< Kmer length to calculate 
+    /** construct a KmerOptions object and set default values */
+    KmerOptions(){
+        enabled = false;
+        kmerLen = 0;
+    }
+};
+
+/** struct to store estimatation options */
+struct EstimateOptions{
+    int seqLen1;          ///< estimated read1 length
+    int seqLen2;          ///< estimated read2 length
+    int readsNum;         ///< estimated total read number
+    bool twoColorSystem;  ///< estimated read from two color system if true
+    std::string adapter;  ///< estimated adapter sequence
+    bool illuminaAdapter; ///< estimated adapter sequnce is from illumina
+    bool estimated;       ///< estimation work done already if true
+    /** construct an EstimateOptions object and set default values */
+    EstimateOptions(){
+        seqLen1 = 151;
+        seqLen2 = 151;
+        readsNum = 0;
+        twoColorSystem = false;
+        adapter = "";
+        illuminaAdapter = false;
+        estimated = false;
+    }
+};
+
 /** struct to hold various option structs and interface  options together */
 struct Options{
     // program interface options 
-    std::string in1;        ///< input read1 filename
-    std::string in2;        ///< input read2 filename
-    std::string out1;       ///< output read1 filename
-    std::string out2;       ///< output read2 filename
-    std::string jsonFile;   ///< output json filename
-    std::string htmlFile;   ///< output html report filename
-    std::string reportTitle; ///< html report title
-    int compression;         ///< compression level for gz format output
-    bool phred64;            ///< the input file is using phred64 quality scoring if true 
-    bool donotOverwrite;     ///< do not over write existing files
-    bool inputFromSTDIN;     ///< read from STDIN
-    bool outputToSTDOUT;     ///< write to STDOUT
-    bool interleavedInput;   ///< the input read1(in1) file is an interleaved PE fastq
-    int readsToProcess;      ///< number of reads to process
-    int thread;              ///< number of threads to do paralel work
-    bool verbose;            ///< output debug information if true
-    // common options
-    int seqLen1;             ///< estimated maximum read length of read1
-    int seqLen2;             ///< estimated maximum read length of read2
-    int insertSizeMax;       ///< maximum value of insert size
-    int overlapRequire;      ///< overlap region minimum length
-    int overlapDiffLimit;    ///< overlap region maximum different bases allowed
+    std::string in1;              ///< input read1 filename
+    std::string in2;              ///< input read2 filename
+    std::string out1;             ///< output read1 filename
+    std::string out2;             ///< output read2 filename
+    std::string jsonFile;         ///< output json filename
+    std::string htmlFile;         ///< output html report filename
+    std::string reportTitle     ; ///< html report title
+    int compression;              ///< compression level for gz format output
+    bool phred64;                 ///< the input file is using phred64 quality scoring if true 
+    bool donotOverwrite;          ///< do not over write existing files
+    bool inputFromSTDIN;          ///< read from STDIN
+    bool outputToSTDOUT;          ///< write to STDOUT
+    bool interleavedInput;        ///< the input read1(in1) file is an interleaved PE fastq
+    int readsToProcess;           ///< number of reads to process
+    int thread;                   ///< number of threads to do paralel work
+    bool verbose;                 ///< output debug information if true
+    int insertSizeMax;            ///< maximum value of insert size
+    int overlapRequire;           ///< overlap region minimum length
+    int overlapDiffLimit;         ///< overlap region maximum different bases allowed
     // submodule options
     ForceTrimOptions trim;                ///< ForceTrimOptions object
     QualityFilterOptions qualFilter;      ///< QualityFilterOptions object
@@ -213,18 +242,58 @@ struct Options{
     LowComplexityFilterOptions complexityFilter;       ///< LowComplexityFilterOptions object
     IndexFilterOptions indexFilter;                    ///< IndexFilterOptions object
     SplitOptions split;                                ///< SplitOptions object
-    
+    KmerOptions kmer;                                  ///< KmerOptions object
+    EstimateOptions est;                               ///< EstimateOptions object 
     // fuctions of Options
+    
     /** Construct a Options object */
     Options();
+    
+    /** initialize options */
     void init();
+    
+    /** test input is paired or not
+     * @return true if input is paired
+     */
     bool isPaired();
+    
+    /** validate options
+     * @return true if all options is valid
+     */
     bool validate();
+    
+    /** test whether adapter cut is enabled
+     * @return true if adapter cut is enabled
+     */
     bool adapterCutEnabled();
+    
+    /** get adapter1 sequence
+     * @return read1 adapter sequence
+     */
     std::string getAdapter1();
+    
+    /** get adapter2 sequence
+     * @return read2 adapter sequence
+     */
     std::string getAdapter2();
+    
+    /** initialize index filter
+     * @param blacklistFile1 index1 blacklist file
+     * @param blacklistFile2 index2 blacklist file
+     * @param threshold threshold for index and blacklist match
+     */
     void initIndexFilter(const std::string& blacklistFile1, const std::string& blacklistFile2, int threshold = 0);
+    
+    /** get a vector of string from lines of a file
+     * @param filename file path name
+     * @return a vector of string from lines of a file
+     */ 
     std::vector<std::string> makeListFromFileByLine(const std::string& filename);
+    
+    /** test shall auto adaptor detection be done
+     * @param isR2 
+     * @return true if auto adaptor detection should be done
+     */
     bool shallDetectAdapter(bool isR2 = false);
 };
 

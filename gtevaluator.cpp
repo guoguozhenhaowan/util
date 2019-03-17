@@ -1,20 +1,22 @@
 #include "gtest/gtest.h"
 #include "evaluator.h"
 
-class EvaluatorTest : public testing::Test{
-    void SetUp() override{
-    }
-    protected:
-        Evaluator e = {"./testdata/R1.adaptor.fq.gz", 0};
-};
-
-TEST_F(EvaluatorTest, All){
-    EXPECT_EQ(e.getAdapter(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA");
-    EXPECT_TRUE(e.isIlluminaAdapter());
-    EXPECT_TRUE(e.isTwoColorSystem());
-    EXPECT_EQ(e.getReadLen(), 150);
-    EXPECT_TRUE(std::abs((long)e.getReadNum() - 300000) < 1000);
-    std::cout << "estimated readnum: " << e.getReadNum() << std::endl;
+TEST(EvaluatorTest, All){
+    Options opt = {};
+    opt.in1 = "./testdata/R1.adaptor.fq.gz";
+    opt.trim.tail1 = 0;
+    Evaluator e = {&opt};
+    e.evaluateReadLen();
+    e.evaluateReadNum();
+    e.evaluateAdapterSeq(false);
+    e.evaluateTwoColorSystem();
+    
+    EXPECT_EQ(opt.est.adapter, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA");
+    EXPECT_TRUE(opt.est.illuminaAdapter);
+    EXPECT_TRUE(opt.est.twoColorSystem);
+    EXPECT_EQ(opt.est.seqLen1, 150);
+    EXPECT_TRUE(std::abs((long)opt.est.readsNum - 300000) < 1000);
+    std::cout << "estimated readnum: " << opt.est.readsNum << std::endl;
 }
 
 int main(int argc, char** argv){

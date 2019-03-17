@@ -1,24 +1,41 @@
 #include "stats.h"
 
-Stats::Stats(const int& estReadLen){
+Stats::Stats(Options* opt, bool isRead2, int bufferMargin){
+    this->opt = opt;
     this->reads = 0;
     this->bases = 0;
+    this->isRead2 = isRead2;
     this->minReadLen = 0;
     this->maxReadLen = 0;
     this->minQual = 127;
     this->maxQual = 33;
-    this->evaluatedSeqLen = estReadLen;
-    this->cycles = estReadLen;
-    this->bufLen = estReadLen + 100;
+    this->evaluatedSeqLen = opt->est.seqLen1;
+    if(this->isRead2){
+        this->evaluatedSeqLen = opt->est.seqLen2;
+    }
+    this->cycles = this->evaluatedSeqLen;
+    this->bufLen = this->evaluatedSeqLen + bufferMargin;
     this->q20Total = 0;
     this->q30Total = 0;
     this->summarized = false;
     this->kmerMax = 0;
     this->kmerMin = 0;
-    this->kmerLen = 5;
+    this->kmerLen = 0;
+    if(opt->kmer.enabled){
+        this->kmerLen = opt->kmer.kmerLen;
+    }
     this->kmerBufLen = 1 << (this->kmerLen * 2);
     this->lengthSum = 0;
-    this->overRepSampleFreq = 100;
+    this->overRepSampleFreq = 0;
+    if(opt->overRepAna.enabled){
+        this->overRepSampleFreq = opt->overRepAna.sampling;
+    }
+    
+    this->allocateRes();
+    
+    if(opt->overRepAna.enabled){
+        this->initOverRepSeq();
+    }
 }
 
 void Stats::allocateRes(){
@@ -830,21 +847,12 @@ Stats* Stats::merge(std::vector<Stats*>& list){
     }
     
     int c = 0;
-    int kl = 0;
-    int smp = 0;
-    int rdl = 0;
     for(int i = 0; i < list.size(); ++i){
         list[i]->summarize();
         c = std::max(c, list[i]->getCycles());
-        kl = std::max(kl, list[i]->kmerLen);
-        smp = std::max(smp, list[i]->overRepSampleFreq);
-        rdl = std::max(rdl, list[i]->getMaxReadLength());
     }
 
-    Stats* s = new Stats(rdl);
-    s->setKmerLen(kl);
-    s->setOverRepSampleFreq(smp);
-    s->allocateRes();
+    Stats* s = new Stats(list[0]->opt, list[0]->isRead2);
     for(int i = 0; i < list.size(); ++i){
         int curCycles = list[i]->getCycles();
         s->reads += list[i]->reads;
@@ -883,10 +891,15 @@ Stats* Stats::merge(std::vector<Stats*>& list){
     return s;
 }
 
-void Stats::initOverRepSeq(Evaluator& fqEva){
-    fqEva.computeOverRepSeq(this->overRepSeq);
-    for(auto& e : this->overRepSeq){
-        e.second = 0;
+void Stats::initOverRepSeq(){
+    std::map<std::string, size_t> *mapORS;
+    if(this->isRead2){
+        mapORS = &(this->opt->overRepAna.overRepSeqR2);
+    }else{
+        mapORS = &(this->opt->overRepAna.overRepSeqR1);
+    }
+    for(auto& e: *mapORS){
+        this->overRepSeq[e.first] = 0;
         this->overRepSeqDist[e.first] = new size_t[this->evaluatedSeqLen];
         std::memset(this->overRepSeqDist[e.first], 0, sizeof(size_t) * this->evaluatedSeqLen);
     }

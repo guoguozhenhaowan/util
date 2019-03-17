@@ -11,12 +11,16 @@
 #include <sstream>
 #include "read.h"
 #include "util.h"
+#include "options.h"
 #include "evaluator.h"
 
 /** Class to do statistics of a fastq file */
 class Stats{
+    private:
+        Options* opt;                  ///< pointer to Options (including kmer and ora option objects)
         size_t reads;                  ///< total reads
         size_t bases;                  ///< total bases
+        bool isRead2;                  ///< this read in statistics is read2 if true
         int minReadLen;                ///< minimal read length
         int maxReadLen;                ///< maximum read length
         int minQual;                   ///< minimum base quality
@@ -49,34 +53,23 @@ class Stats{
         std::map<std::string, size_t*> overRepSeqDist;///< map of <repseq, dist*>
     
     public:
-        /** Construct a Stats object of fq with length estReadLen */
-        Stats(const int& estReadLen);
+        /** Construct a Stats object of fq 
+         * @param opt pointer to Options object
+         * @param isRead2 this fq is read2 if true
+         * @param bufferMargin additional buffer length 
+         */
+        Stats(Options* opt, bool isRead2 = false, int bufferMargin = 1024);
         
         /** Destroy a Stats object Free allocated mamory */
         ~Stats();
-
-        /** Set Kmer length to calculate
-         * @param kLen Kmer length, if kLen = 0, Kmer statistics will not be done
-         */ 
-        inline void setKmerLen(const int kLen){
-            this->kmerLen = kLen;
-            this->kmerBufLen = (1 << (this->kmerLen * 2));
-        }
-
-        /** Set over representation analysis sampling frequence
-         * @param readFreq if readFreq = 0, over representation analysis will not be done
-         */
-        inline void setOverRepSampleFreq(int readFreq){
-            this->overRepSampleFreq = readFreq;
-        }
-
+        
         /** Allocate resources for a Stats object */
         void allocateRes();
         
         /** Initialize overrepresentation analysis
          * @param fqEva Evaluator object  used to compute representatin sequences
          */
-        void initOverRepSeq(Evaluator& fqEva);
+        void initOverRepSeq();
 
         /** get minimum read length
          * @return minimum read length
@@ -166,7 +159,6 @@ class Stats{
          * @param readName library name 
          */
         void reportHtml(std::ofstream& ofs, std::string filteringType, std::string readName);
-        
 
         /** Generate Quality part of the Html report
          * @param ofs std::ofstream to output report
