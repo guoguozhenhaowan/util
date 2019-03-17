@@ -152,6 +152,27 @@ struct ForceTrimOptions{
     }
 };
 
+/** struct to store output file split options */
+class SplitOptions{
+    bool enabled;         ///< enable output file split
+    int number;           ///< split file numbers of a file
+    size_t size;          ///< number of lines of each split file
+    int digits;           ///< digits number of split filename prefix, e.g 0001 means 4 digits
+    bool needEvaluation;  ///< need evaluation if true
+    bool byFileNumber;    ///< split by file number
+    bool byFileLines;     ///< split by file lines
+    /** construct a SplitOptions object and set default values */
+    SplitOptions(){
+        enabled = false;
+        needEvaluation = false;
+        number = 0;
+        size = 0;
+        digits = 4;
+        byFileLines = false;
+        byFileLines = false;
+    }
+};
+
 /** struct to hold various option structs and interface  options together */
 struct Options{
     // program interface options 
