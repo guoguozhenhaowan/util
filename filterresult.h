@@ -9,27 +9,15 @@
 #include <fstream>
 #include <map>
 #include "common.h"
+#include "options.h"
 #include "stats.h"
 #include "jsonutil.h"
 #include "htmlutil.h"
 
-/** filter options struct */
-struct FilterOpt{
-    bool filterShortRead;    ///< filter too short read if true
-    bool filterLongRead;     ///< filter too long read if true
-    bool trimAdapter;        ///< trim adapter sequnce if true
-    bool baseCorrection;     ///< correct base if true
-    bool complexityFilter;   ///< filter low complexity tread if true
-    int minReadLen;          ///< read length lower than this will be treated as too short
-    int maxReadLen;          ///< read length greater than this will be treated as too long
-    FilterOpt() = default;
-    ~FilterOpt() = default;
-};
-
 /** Class to store/calculate read filter results */
 class FilterResult{
     public:
-        FilterOpt *opt;                                         ///< pointer to FilterOpt object store various filter options
+        Options *opt;                                           ///< pointer to Options object
         bool paired;                                            ///< pairend filter results if true, else single end results
         size_t correctedReads;                                  ///< number of reads got bases corrected
         size_t correctedBases;                                  ///< number of bases got corrected
@@ -42,10 +30,10 @@ class FilterResult{
         bool summarized;                                        ///< whether a FilterResult has been summarized(i.e correctedBases calculated)
     public:
         /** Construct FilterResult object to store/calculate filter results
-         * @param opt FilterOpt object to store various filter arguments
+         * @param opt Options object including various filter options
          * @param paired if true the FilterResult object store pairend filter results
          */ 
-        FilterResult(FilterOpt* opt, bool paired = false);
+        FilterResult(Options* opt, bool paired = false);
         
         /** Destruct FilterResult object, free correctionMatrix */
         ~FilterResult();

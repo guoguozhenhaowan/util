@@ -1,6 +1,6 @@
 #include "filterresult.h"
 
-FilterResult::FilterResult(FilterOpt* opt, bool paired){
+FilterResult::FilterResult(Options* opt, bool paired){
     this->opt = opt;
     this->paired = paired;
     this->trimmedAdapterBases = 0;
@@ -150,24 +150,24 @@ void FilterResult::addAdapterTrimmed(const std::string& adapterR1, const std::st
 }
 
 std::ostream& operator<<(std::ostream& os, FilterResult* re){
-    FilterOpt* fopt = re->opt;
+    Options* opt = re->opt;
     os << "reads passed filter: " << re->filterReadStats[compar::PASS_FILTER] << "\n";
     os << "reads failed due to low quality: " << re->filterReadStats[compar::FAIL_QUALITY] << "\n";
     os << "reads failed due to too many N: " << re->filterReadStats[compar::FAIL_N_BASE] << "\n";
-    if(fopt->filterShortRead){
+    if(opt->lengthFilter.enabled){
         os << "reads failed due to too short: " << re->filterReadStats[compar::FAIL_LENGTH] << "\n";
+        if(opt->lengthFilter.maxReadLength > 0){
+            os << "reads failed due to too long: " << re->filterReadStats[compar::FAIL_TOO_LONG] << "\n";
+        }
     }
-    if(fopt->filterLongRead){
-        os << "reads failed due to too long: " << re->filterReadStats[compar::FAIL_TOO_LONG] << "\n";
-    }
-    if(fopt->complexityFilter){
+    if(opt->complexityFilter.enabled){
         os << "reads failed due to low complexity: " << re->filterReadStats[compar::FAIL_COMPLEXITY] << "\n";
     }
-    if(fopt->trimAdapter){
+    if(opt->adapter.enableTriming){
         os << "reads with adapter trimmed: " << re->trimmedAdapterReads << "\n";
         os << "bases trimmed due to adapters: " << re->trimmedAdapterBases << "\n";
     }
-    if(fopt->baseCorrection){
+    if(opt->correction.enabled){
         os << "reads corrected by overlap analysis: " << re->correctedReads << "\n";
         os << "bases corrected by overlap analysis: " << re->getTotalCorrectedBases() << "\n";
     }
@@ -179,18 +179,18 @@ void FilterResult::reportJsonBasic(std::ofstream& ofs, const std::string& paddin
     jsonutil::writeRecord(ofs, padding, "passed_filter_reads", this->filterReadStats[compar::PASS_FILTER]);
     jsonutil::writeRecord(ofs, padding, "low_quality_reads", this->filterReadStats[compar::FAIL_QUALITY]);
     jsonutil::writeRecord(ofs, padding, "too_many_N_reads", this->filterReadStats[compar::FAIL_N_BASE]);
-    if(this->opt->baseCorrection){
+    if(opt->correction.enabled){
         jsonutil::writeRecord(ofs, padding, "corrected_reads", this->correctedReads);
         jsonutil::writeRecord(ofs, padding, "corrected_bases", this->getTotalCorrectedBases());
     }
-    if(this->opt->complexityFilter){
+    if(opt->complexityFilter.enabled){
         jsonutil::writeRecord(ofs, padding, "low_complexity_reads", this->filterReadStats[compar::FAIL_COMPLEXITY]);
     }
-    if(this->opt->filterShortRead){
+    if(opt->lengthFilter.enabled){
         jsonutil::writeRecord(ofs, padding, "too_short_reads", this->filterReadStats[compar::FAIL_LENGTH]);
-    }
-    if(this->opt->filterLongRead){
-        jsonutil::writeRecord(ofs, padding, "too_long_reads", this->filterReadStats[compar::FAIL_TOO_LONG]);
+        if(opt->lengthFilter.maxReadLength > 0){
+            jsonutil::writeRecord(ofs, padding, "too_long_reads", this->filterReadStats[compar::FAIL_TOO_LONG]);
+        }
     }
     ofs << padding << "}," << std::endl;
 }
@@ -200,18 +200,18 @@ void FilterResult::reportHtmlBasic(std::ofstream& ofs, size_t totalReads, size_t
     htmlutil::outputTableRow(ofs, "reads passed filters:", htmlutil::formatNumber(this->filterReadStats[compar::PASS_FILTER]) + " (" + std::to_string(this->filterReadStats[compar::PASS_FILTER] * 100.0 / totalBases) + "%)");
     htmlutil::outputTableRow(ofs, "low_quality_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_QUALITY]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_QUALITY] * 100.0 / totalBases) + "%)");
     htmlutil::outputTableRow(ofs, "too_many_N_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_N_BASE]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_N_BASE] * 100.0 / totalBases) + "%)");
-    if(this->opt->baseCorrection){
+    if(opt->correction.enabled){
         htmlutil::outputTableRow(ofs, "corrected_reads", htmlutil::formatNumber(this->correctedReads) + " (" + std::to_string(this->correctedReads * 100.0 / totalReads) + "%)");
         htmlutil::outputTableRow(ofs, "corrected_bases", htmlutil::formatNumber(this->getTotalCorrectedBases()) + " (" + std::to_string(this->getTotalCorrectedBases()) + " (" + std::to_string(this->getTotalCorrectedBases() * 100.0 / totalBases) + "%)");
     }
-    if(this->opt->complexityFilter){
+    if(opt->complexityFilter.enabled){
         htmlutil::outputTableRow(ofs, "low_complexity_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_COMPLEXITY]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_COMPLEXITY] * 100.0 / totalReads) + "%)");
     }
-    if(this->opt->filterShortRead){
+    if(opt->lengthFilter.enabled){
         htmlutil::outputTableRow(ofs, "too_short_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_LENGTH]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_LENGTH] * 100.0 / totalReads) + "%)");
-    }
-    if(this->opt->filterLongRead){
-        htmlutil::outputTableRow(ofs, "too_long_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_TOO_LONG]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_TOO_LONG] * 100.0 /totalReads) + "%)");
+        if(opt->lengthFilter.maxReadLength > 0){
+            htmlutil::outputTableRow(ofs, "too_long_reads", htmlutil::formatNumber(this->filterReadStats[compar::FAIL_TOO_LONG]) + " (" + std::to_string(this->filterReadStats[compar::FAIL_TOO_LONG] * 100.0 /totalReads) + "%)");
+        }
     }
 }
 

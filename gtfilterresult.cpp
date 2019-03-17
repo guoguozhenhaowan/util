@@ -2,17 +2,16 @@
 #include "gtest/gtest.h"
 
 TEST(FilterResult, Test){
-    FilterOpt *popt = new FilterOpt;
-    popt->baseCorrection = true;
-    popt->complexityFilter = true;
-    popt->filterLongRead = true;
-    popt->filterShortRead = true;
-    popt->trimAdapter = true;
-    popt->maxReadLen = 300;
-    popt->minReadLen = 30;
+    Options opt;
+    opt.correction.enabled = true;
+    opt.complexityFilter.enabled = false;
+    opt.lengthFilter.enabled = true;
+    opt.lengthFilter.minReadLength = 30;
+    opt.lengthFilter.maxReadLength = 300;
+    opt.adapter.enableTriming = true;
 
-    FilterResult ser = {popt, false};
-    FilterResult per = {popt, true};
+    FilterResult ser = {&opt, false};
+    FilterResult per = {&opt, true};
 
     ser.addAdapterTrimmed("ATCGATA");
     ser.addCorrection('c', 'a');
