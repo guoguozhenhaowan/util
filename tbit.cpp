@@ -24,7 +24,13 @@ int main(int argc, char** argv){
         std::cout << std::string(argv[0]) << " <number> " << std::endl;
         exit(0);
     }
-    int val = std::atoi(argv[1]);
+    std::string str(argv[1]);
+    int val = 0;
+    if(str.length() == 1){
+        val = str[0] - val;
+    }else{
+        val = std::atoi(argv[1]);
+    }
     writeBits(val, STDOUT_FILENO);
     std::cout << std::endl;
 }
