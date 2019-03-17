@@ -24,7 +24,7 @@ namespace htmlutil{
      * @param number a non-negative number to be formatted
      * @return formatted number string
      */
-    std::string formatNumber(const size_t& number){
+    inline std::string formatNumber(const size_t& number){
         double num = (double)number;
         const std::string unit[6] = {"", "K", "M", "G", "T", "P"};
         int order = 0;
