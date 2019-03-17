@@ -24,6 +24,8 @@ utilities
 |[versqual.c](./versqual.c)|check fq quality && sequence length
 |[CLI.hpp](./CLI.hpp)|recode from https://github.com/CLIUtils/CLI11
 |[dirutil.h](./dirutil.h)|recode from https://github.com/gpakosz/whereami
+|[htmlutil.h](./htmlutil.h)|html writting utilities
+|[jsonutil.h](./jsonutil.h)|json writting utilities
 |[util.h](./util.h)|useful functions
 |[gtutil.cpp](./gtutil.cpp)|google test for [util.h](./util.h)
 |[commoh.h](./common.h)|common const definition header file
@@ -54,3 +56,7 @@ utilities
 |[writer.h](./writer.h)|Writer class to do plain or gz format writting
 |[writer.cpp](./writer.cpp)|implementation of some functions in [writer.h](./writer.h)
 |[gtwriter.cpp](./gtwriter.cpp)|google test for [writer.h](./writer.h)
+|[filterresult.h](./filterresult.h)|FilterResult class to store and accumulate read/pair filter result and output results
+|[filterresult.cpp](./filterresult.cpp)|implementation of some functions in [filterresult.h](./filterresult.h)
+|[gtfilterresult.cpp](./gtfilterresult.cpp)|google test for [filterresult.h](./filterresult.h)
+
