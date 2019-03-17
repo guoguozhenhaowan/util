@@ -254,6 +254,26 @@ namespace util{
         return util::isdir(path) || util::isfile(path);
     }
 
+    /** exit and print string to std::cerr
+     * @param msg string to print to std::cerr
+     */
+    inline void error_exit(const std::string& msg){
+        std::cerr << "ERROR: " << msg << std::endl;
+        exit(-1);
+    }
+    
+    /** check a file existence status, if not exists, exit 
+     * @param path string of file/directory
+     */
+    inline void valid_file(const std::string& path){
+        if(util::isdir(path)){
+            util::error_exit("this is not a file path!");
+        }
+        if(!util::isfile(path)){
+            util::error_exit("file does not exist");
+        }
+    }
+
     /** make directories recursively
      * @param path path of directory to be created
      * @return true if make directories successfully
@@ -352,14 +372,6 @@ namespace util{
         }
         char c = num + 33;
         return c;
-    }
-
-    /** exit and print string to std::cerr
-     * @param msg string to print to std::cerr
-     */
-    inline void error_exit(const std::string& msg){
-        std::cerr << "ERROR: " << msg << std::endl;
-        exit(-1);
     }
 
     /** get complement base of a nucleotide base
