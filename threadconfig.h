@@ -14,6 +14,9 @@ struct ThreadOpt{
     int estimatedReadLen;
     bool enableSplit;
     bool splitByFileNumber;
+    bool splitByFileLines;
+    int thread;
+    int splitNumber;
     size_t splitSize;
     bool paired;
     int compression;

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 
+/** utility to operate on strings and directories */
 namespace util{
     /** whether a string starts with some substring
      * @param str whole string
@@ -299,6 +300,7 @@ namespace util{
 
     /** remove invalid sequence characters from a string
      * @param str string to be filtered
+     * @param upper convert result to uppercase if true
      */
     inline void get_valid(std::string& str, bool upper = false){
         size_t total = 0;

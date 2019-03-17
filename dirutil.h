@@ -522,7 +522,11 @@ int wai_getModulePath(char* out, int capacity, int* dirname_length)
 #include <string>
 #include <climits>
 
+/** utilities to get absolute path of the current executable and current module/library path on the file system */
 namespace dirutil{
+    /** get absolute path of the current executable
+     * @return absolute path of the current executable
+     */
     std::string getExecutablePath(){
         int l = wai_getExecutablePath(NULL, 0, NULL);
         char *path = (char*)malloc(l + 1);
@@ -530,6 +534,10 @@ namespace dirutil{
         path[l] = '\0';
         return std::string(path);
     }
+
+    /** get absolute path of the current module/library
+     * @return absolute path of the current module/library
+     */
     std::string getModulePath(){
         int l = wai_getModulePath(NULL, 0, NULL);
         char *path = (char*)malloc(l + 1);

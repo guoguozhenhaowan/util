@@ -106,3 +106,4 @@ void ThreadConfig::markProcessed(size_t readNum){
     if(this->currentSplitReads >= this->opt->splitSize){
 
     }
+
