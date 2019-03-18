@@ -16,6 +16,8 @@ g++ -std=c++11 -lgtest gtoverlapanalysis.cpp overlapanalysis.cpp
 g++ -std=c++11 -lgtest gtfilter.cpp filter.cpp read.cpp options.cpp
 # test duplicate.h
 g++ -std=c++11 -lgtest -lz gtduplicate.cpp duplicate.cpp fqreader.cpp options.cpp
+# test basecorrector.h
+g++ -std=c++11 -lgtest gtbasecorrector.cpp basecorrector.cpp filterresult.cpp overlapanalysis.cpp
 # test adaptertrimmer.h
 g++ -std=c++11 -lgtest gtadaptertrimmer.cpp adaptertrimmer.cpp filterresult.cpp overlapanalysis.cpp
 # test evaluator.h
