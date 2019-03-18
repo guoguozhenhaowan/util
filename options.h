@@ -14,9 +14,9 @@
 namespace fqlib{
     /** struct to store duplication analysis options */
     struct DuplicationAnalysisOptions{
-        bool enabled;
-        int keylen;
-        int histSize;
+        bool enabled;   ///< enable duplication analysis if true
+        int keylen;     ///< key length of read
+        int histSize;   ///< hist length to do statistics
         /** construct a DuplicationAnalysisOptions and set default values */
         DuplicationAnalysisOptions(){
             enabled = true;
