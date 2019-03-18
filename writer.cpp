@@ -1,112 +1,113 @@
 #include "writer.h"
 
-Writer::Writer(const std::string& filename, const int& compression){
-    this->compressLevel = compression;
-    this->filename = filename;
-    this->zipfile = NULL;
-    this->zipped = false;
-    this->needClose = true;
-    this->init();
-}
-
-Writer::Writer(std::ofstream* ofs){
-    this->zipfile = NULL;
-    this->zipped = false;
-    this->ofs = ofs;
-    this->needClose = false;
-}
-
-Writer::Writer(gzFile gzfile){
-    this->ofs = NULL;
-    this->zipfile = gzfile;
-    this->zipped = true;
-    this->needClose = false;
-}
-
-Writer::~Writer(){
-    if(needClose){
-        this->close();
+namespace fqlib{
+    Writer::Writer(const std::string& filename, const int& compression){
+        mCompressLevel = compression;
+        mFilename = filename;
+        mGzFile = NULL;
+        mZipped = false;
+        mNeedClose = true;
+        init();
     }
-}
-
-std::string Writer::getFilename(){
-    return this->filename;
-}
-
-void Writer::init(){
-    if(util::ends_with(this->filename, ".gz")){
-        this->zipfile = gzopen(this->filename.c_str(), "w");
-        gzsetparams(this->zipfile, this->compressLevel, Z_DEFAULT_STRATEGY);
-        gzbuffer(this->zipfile, 1024 * 1024);
-        this->zipped = true;
-    }else{
-        this->ofs = new std::ofstream();
-        this->ofs->open(this->filename.c_str(), std::ios::out);
-        this->zipped = false;
+    
+    Writer::Writer(std::ofstream* stream){
+        mGzFile = NULL;
+        mZipped = false;
+        mStream = stream;
+        mNeedClose = false;
     }
-}
-
-bool Writer::writeLine(const std::string& linestr){
-    const char* line = linestr.c_str();
-    size_t size = linestr.length();
-    size_t written = 0;
-    bool status = true;
-    if(this->zipped){
-        written = gzwrite(this->zipfile, line, size);
-        gzputc(this->zipfile, '\n');
-        status = size == written;
-    }else{
-        this->ofs->write(line, size);
-        this->ofs->put('\n');
-        status = !this->ofs->fail();
+    
+    Writer::Writer(gzFile gzfile){
+        mStream = NULL;
+        mGzFile = gzfile;
+        mZipped = true;
+        mNeedClose = false;
     }
-    return status;
-}
-
-bool Writer::writeString(const std::string& str){
-    const char* cstr = str.c_str();
-    size_t size = str.length();
-    size_t written = 0;
-    bool status = true;
-    if(this->zipped){
-        written = gzwrite(this->zipfile, cstr, size);
-        status = size == written;
-    }else{
-        this->ofs->write(cstr, size);
-        status = !this->ofs->fail();
-    }
-    return status;
-}
-
-bool Writer::write(char* cstr, size_t size){
-    size_t written = 0;
-    bool status = true;
-    if(this->zipped){
-        written = gzwrite(this->zipfile, cstr, size);
-        status = size == written;
-    }else{
-        this->ofs->write(cstr, size);
-        status = !this->ofs->fail();
-    }
-    return status;
-}
-
-void Writer::close(){
-    if(this->zipped){
-        if(this->zipfile){
-            gzflush(this->zipfile, Z_FINISH);
-            gzclose(this->zipfile);
-            this->zipfile = NULL;
-        }
-    }else if(this->ofs){
-        if(this->ofs->is_open()){
-            this->ofs->flush();
-            this->ofs = NULL;
+    
+    Writer::~Writer(){
+        if(mNeedClose){
+            close();
         }
     }
+    
+    std::string Writer::getFilename(){
+        return mFilename;
+    }
+    
+    void Writer::init(){
+        if(util::ends_with(mFilename, ".gz")){
+            mGzFile = gzopen(mFilename.c_str(), "w");
+            gzsetparams(mGzFile, mCompressLevel, Z_DEFAULT_STRATEGY);
+            gzbuffer(mGzFile, 1024 * 1024);
+            mZipped = true;
+        }else{
+            mStream = new std::ofstream();
+            mStream->open(mFilename.c_str(), std::ios::out);
+            mZipped = false;
+        }
+    }
+    
+    bool Writer::writeLine(const std::string& linestr){
+        const char* line = linestr.c_str();
+        size_t size = linestr.length();
+        size_t written = 0;
+        bool status = true;
+        if(mZipped){
+            written = gzwrite(mGzFile, line, size);
+            gzputc(mGzFile, '\n');
+            status = size == written;
+        }else{
+            mStream->write(line, size);
+            mStream->put('\n');
+            status = !mStream->fail();
+        }
+        return status;
+    }
+    
+    bool Writer::writeString(const std::string& str){
+        const char* cstr = str.c_str();
+        size_t size = str.length();
+        size_t written = 0;
+        bool status = true;
+        if(mZipped){
+            written = gzwrite(mGzFile, cstr, size);
+            status = size == written;
+        }else{
+            mStream->write(cstr, size);
+            status = !mStream->fail();
+        }
+        return status;
+    }
+    
+    bool Writer::write(char* cstr, size_t size){
+        size_t written = 0;
+        bool status = true;
+        if(mZipped){
+            written = gzwrite(mGzFile, cstr, size);
+            status = size == written;
+        }else{
+            mStream->write(cstr, size);
+            status = !mStream->fail();
+        }
+        return status;
+    }
+    
+    void Writer::close(){
+        if(mZipped){
+            if(mGzFile){
+                gzflush(mGzFile, Z_FINISH);
+                gzclose(mGzFile);
+                mGzFile = NULL;
+            }
+        }else if(mStream){
+            if(mStream->is_open()){
+                mStream->flush();
+                mStream = NULL;
+            }
+        }
+    }
+    
+    bool Writer::isZipped(){
+        return mZipped;
+    }
 }
-
-bool Writer::isZipped(){
-    return this->zipped;
-}
-

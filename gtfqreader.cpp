@@ -6,8 +6,8 @@ class FastqReaderTest : public testing::Test{
         void SetUp() override{
         }
 
-        FqReader reader1 = {"./testdata/R1.fq"};
-        FqReader reader2 = {"./testdata/R1.fq.gz"};
+        fqlib::FqReader reader1 = {"./testdata/R1.fq"};
+        fqlib::FqReader reader2 = {"./testdata/R1.fq.gz"};
 };
 
 TEST_F(FastqReaderTest, read){
@@ -21,8 +21,8 @@ TEST_F(FastqReaderTest, read){
     EXPECT_EQ(rdbt, 373);
     EXPECT_EQ(ttbt, 373);
 
-    Read* r1 = NULL;
-    Read* r2 = NULL;
+    fqlib::Read* r1 = NULL;
+    fqlib::Read* r2 = NULL;
     while(true){
         r1 = reader1.read();
         r2 = reader2.read();

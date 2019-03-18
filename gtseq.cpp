@@ -7,9 +7,9 @@ class SeqTest : public ::testing::Test{
         void SetUp() override{
         }
         
-        Seq s1;
-        Seq s2 = {"ATCGGCAT"};
-        Seq s3 = {"GTACGTNU"};
+        fqlib::Seq s1;
+        fqlib::Seq s2 = {"ATCGGCAT"};
+        fqlib::Seq s3 = {"GTACGTNU"};
 };
 
 // test default constructor
@@ -21,7 +21,7 @@ TEST_F(SeqTest, isEmptyInitially){
 TEST_F(SeqTest, reverseComplement){
     EXPECT_EQ(s2.reverseComplement().seqStr, "ATGCCGAT");
     EXPECT_EQ(s3.reverseComplement().seqStr, "NNACGTAC");
-    Seq s4 = ~s3;
+    fqlib::Seq s4 = ~s3;
     EXPECT_EQ(s4.seqStr, "NNACGTAC");
 }
 

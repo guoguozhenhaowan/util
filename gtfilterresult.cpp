@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 
 TEST(FilterResult, Test){
-    Options opt;
+    fqlib::Options opt;
     opt.correction.enabled = true;
     opt.complexityFilter.enabled = false;
     opt.lengthFilter.enabled = true;
@@ -10,8 +10,8 @@ TEST(FilterResult, Test){
     opt.lengthFilter.maxReadLength = 300;
     opt.adapter.enableTriming = true;
 
-    FilterResult ser = {&opt, false};
-    FilterResult per = {&opt, true};
+    fqlib::FilterResult ser = {&opt, false};
+    fqlib::FilterResult per = {&opt, true};
 
     ser.addAdapterTrimmed("ATCGATA");
     ser.addCorrection('c', 'a');

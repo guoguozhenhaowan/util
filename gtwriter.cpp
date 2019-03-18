@@ -7,8 +7,8 @@ TEST(Writer, write){
     char cstr[] = "hello kitty";
     std::string outf = "./plain.txt";
     std::string zipf = "./hello.gz";
-    Writer fp = {outf};
-    Writer fz = {zipf};
+    fqlib::Writer fp = {outf};
+    fqlib::Writer fz = {zipf};
     fp.init();
     fp.writeLine(str);
     fp.write(cstr, 11);
@@ -21,11 +21,11 @@ TEST(Writer, write){
     fz.writeString(str);
     fz.close();
 
-    FqReader fqr = {"./hello.gz"};
+    fqlib::FqReader fqr = {"./hello.gz"};
     std::string sget = fqr.getLine();
     EXPECT_EQ(sget, "hello kittfuck shit");
 
-    FqReader fqr2 = {"./plain.txt"};
+    fqlib::FqReader fqr2 = {"./plain.txt"};
     sget = fqr2.getLine();
     EXPECT_EQ(sget, "fuck shit");
 }

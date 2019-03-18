@@ -2,10 +2,10 @@
 #include "evaluator.h"
 
 TEST(EvaluatorTest, All){
-    Options opt = {};
+    fqlib::Options opt = {};
     opt.in1 = "./testdata/R1.adaptor.fq.gz";
     opt.trim.tail1 = 0;
-    Evaluator e = {&opt};
+    fqlib::Evaluator e = {&opt};
     e.evaluateReadLen();
     e.evaluateReadNum();
     e.evaluateAdapterSeq(false);

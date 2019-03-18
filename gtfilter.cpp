@@ -2,19 +2,20 @@
 #include "gtest/gtest.h"
 
 TEST(Filter, trimAndCut){
-    Read r("@name", 
+    fqlib::Read r("@name", 
            "TTTTAACCCCCCCCCCCCCCCCCCCCCCCCCCCCAATTTT", 
            "+",
            "/////CCCCCCCCCCCC////CCCCCCCCCCCCCC////E");
-    QualCutOpt opt;
-    opt.cutFront = true;
-    opt.cutTail = true;
-    opt.windowFront = 4;
-    opt.minFrontQual = 20;
-    opt.windowTail = 4;
-    opt.minTailQual = 20;
+    fqlib::Options opt;
+    opt.qualitycut.enableFront = true;
+    opt.qualitycut.enableTail = true;
+    opt.qualitycut.windowSizeFront = 4;
+    opt.qualitycut.qualityFront = 20;
+    opt.qualitycut.windowSizeTail = 4;
+    opt.qualitycut.qualityTail = 20;
 
-    Read* ret = Filter::trimAndCut(&r, 0, 1, &opt);
+    fqlib::Filter f(&opt);
+    fqlib::Read* ret = f.trimAndCut(&r, 0, 1);
 
     EXPECT_EQ(ret->seq.seqStr, "CCCCCCCCCCCCCCCCCCCCCCCCCCCC");
     EXPECT_EQ(ret->quality, "CCCCCCCCCCC////CCCCCCCCCCCCC");

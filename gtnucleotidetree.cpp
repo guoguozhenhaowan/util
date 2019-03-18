@@ -17,8 +17,8 @@ class NucleotideTreeTest : public testing::Test{
         }
 
         bool reachedLeaf = true;
-        NucleotideTree ntree;
-        NucleotideTree ptree;
+        fqlib::NucleotideTree ntree;
+        fqlib::NucleotideTree ptree;
 };
 
 TEST_F(NucleotideTreeTest, getDominantPath){
