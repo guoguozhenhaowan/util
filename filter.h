@@ -13,7 +13,7 @@ namespace fqlib{
     /** Class to do fastq read filter by various standards and methods */
     class Filter{
         public:
-            Options* mOptions;
+            Options* mOptions;   ///< Pointer to Options object
             /** Construct a Filter object, negative parameter will turn the corresponding filterr
              * @param opt pointer to Options
              */
@@ -37,7 +37,6 @@ namespace fqlib{
              * @param r pointer to a Read object
              * @param forceFrontCut force cut length from 5'end, will always happen
              * @param forceTailCut force cut length from 3'end, will always happen
-             * @param opt vasious quality cut options, some may happen
              * @return a Read trim and cut properly
              */
             Read* trimAndCut(Read* r, int forceFrontCut, int forceTailCut);
