@@ -12,6 +12,31 @@
 #include "util.h"
 
 namespace fqlib{
+#define UMI_LOC_NONE 0
+#define UMI_LOC_INDEX1 1
+#define UMI_LOC_INDEX2 2
+#define UMI_LOC_READ1 3
+#define UMI_LOC_READ2 4
+#define UMI_LOC_PER_INDEX 5
+#define UMI_LOC_PER_READ 6
+    /** struct to store umi process options */
+    struct UMIOptions{
+        bool enabled;     ///< enable umi process if true
+        int location;     ///< umi locations, refer to the MACRO defined
+        int length;       ///< umi length
+        int skip;         ///< number of bases to skip after umi cut from read
+        std::string prefix;     ///< umi prefix in the modified read name
+        std::string separator;  ///< separator to cat two umi seq
+        /** construct a UMIOptions object and set default values */
+        UMIOptions(){
+            enabled = false;
+            location = 0;
+            length = 0;
+            skip = 0;
+        }
+    };
+
+
     /** struct to store duplication analysis options */
     struct DuplicationAnalysisOptions{
         bool enabled;   ///< enable duplication analysis if true
@@ -260,6 +285,7 @@ namespace fqlib{
         KmerOptions kmer;                                  ///< KmerOptions object
         EstimateOptions est;                               ///< EstimateOptions object
         DuplicationAnalysisOptions duplicate;              ///< DuplicationAnalysisOptions object
+        UMIOptions umi;                                    ///< UMIOptions object 
         // fuctions of Options
         
         /** Construct a Options object */
