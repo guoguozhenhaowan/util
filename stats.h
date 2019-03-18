@@ -68,7 +68,6 @@ namespace fqlib{
             void allocateRes();
             
             /** Initialize overrepresentation analysis
-             * @param fqEva Evaluator object  used to compute representatin sequences
              */
             void initOverRepSeq();
     
