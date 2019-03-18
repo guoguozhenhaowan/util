@@ -8,7 +8,7 @@
 #include <vector>
 #include "read.h"
 
-/** fqlib to process fastq */
+/** a library to operate on fastq in various ways */
 namespace fqlib{
     /** Class to store overlap analysis results.*/
     class OverlapResult{
