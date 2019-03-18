@@ -65,3 +65,7 @@ utilities
 |[adaptertrimmer.h](./adaptertrimmer.h)|AdapterTrimmer class to do adapter trimming
 |[adaptertrimmer.cpp](./adaptertrimmer.cpp)|implementation of some functions in [adaptertrimmer.h](./adaptertrimmer.h)
 |[gtadaptertrimmer.cpp](./gtadaptertrimmer.cpp)|google test for [adaptertrimmer.h](./adaptertrimmer.h)
+|[basecorrector.h](./basecorrector.h)|BaseCorrector class to do base correction
+|[basecorrector.cpp](./basecorrector.cpp)|implementation of some functions in [basecorrector.h](./basecorrector.h)
+|[gtbasecorrector.cpp](./gtbasecorrector.cpp)|google test for [basecorrector.h](./basecorrector.h)
+
