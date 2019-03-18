@@ -39,7 +39,7 @@ namespace fqlib{
              * @param adapter adapter sequence provided externally
              * @param isR2 this is read2 of a pe fq if true
              */
-            static bool trimBySequence(Read* r1, FilterResult* fr, std::string& adapter, bool isR2 = false);
+            static bool trimBySequence(Read* r, FilterResult* fr, std::string& adapter, bool isR2 = false);
     };
 }
 
