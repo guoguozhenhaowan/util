@@ -68,4 +68,7 @@ utilities
 |[basecorrector.h](./basecorrector.h)|BaseCorrector class to do base correction
 |[basecorrector.cpp](./basecorrector.cpp)|implementation of some functions in [basecorrector.h](./basecorrector.h)
 |[gtbasecorrector.cpp](./gtbasecorrector.cpp)|google test for [basecorrector.h](./basecorrector.h)
+|[polyx.h](./polyx.h)|PolyX class to do polyX trimming
+|[polyx.cpp](./polyx.cpp)|implementation of some functions in [polyx.h](./polyx.h)
+|[gtpolyx.cpp](./gtpolyx.cpp)|google test for [polyx.h](./polyx.h)
 
