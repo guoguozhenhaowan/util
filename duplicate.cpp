@@ -3,8 +3,8 @@
 namespace fqlib{
     Duplicate::Duplicate(Options* opt){
         mOptions = opt;
-        mKeyLenInBase = opt->duplicate.keylen;
-        mKeyLenInBit = 1 << (2 * mKeyLenInBase);
+        mKeyLenInBase = mOptions->duplicate.keylen;
+        mKeyLenInBit = (1UL << (2 * mKeyLenInBase));
         mDups = new u_int64_t[mKeyLenInBit];
         std::memset(mDups, 0, sizeof(u_int64_t) * mKeyLenInBit);
         mCounts = new u_int32_t[mKeyLenInBit];
@@ -80,7 +80,6 @@ namespace fqlib{
             return;
         }
         u_int8_t gc = 0;
-
         if(mCounts[key] == 0){
             for(int i = 0; i < r->length(); ++i){
                 if(cstr[i] == 'C' || cstr[i] == 'G'){
@@ -146,8 +145,8 @@ namespace fqlib{
                     ++gcStatNum[histSize -1];
                 }else{
                     ++hist[count];
-                    meanGC[histSize -1] += gc;
-                    ++gcStatNum[histSize -1];
+                    meanGC[count] += gc;
+                    ++gcStatNum[count];
                 }
             }
         }
@@ -159,7 +158,6 @@ namespace fqlib{
         }
 
         delete[] gcStatNum;
-
         if(totalNum == 0){
             return 0.0;
         }else{

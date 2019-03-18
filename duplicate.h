@@ -60,12 +60,12 @@ namespace fqlib{
             u_int64_t seq2int(const char* cstr, int start, int keylen, bool& valid);
         
         private: 
-            Options* mOptions;  ///< Options Object to provide duplicate analysis options   
-            int mKeyLenInBase;  ///< the length of the key in bases
-            int mKeyLenInBit;   ///< the bits number needed to represent all kinds of keys
-            u_int64_t* mDups;   ///< mDups[key] = (the kmer32 with the highest GC encountered)
-            u_int32_t* mCounts; ///< mCounts[key] = (the same kmer32 number eccountered)
-            u_int8_t* mGC;      ///< mGC[key] = (the GC ratio * 255.0 of the kmer32)
+            Options* mOptions;      ///< Options Object to provide duplicate analysis options   
+            int mKeyLenInBase;      ///< the length of the key in bases
+            u_int64_t mKeyLenInBit; ///< the bits number needed to represent all kinds of keys
+            u_int64_t* mDups;       ///< mDups[key] = (the kmer32 with the highest GC encountered)
+            u_int32_t* mCounts;     ///< mCounts[key] = (the same kmer32 number eccountered)
+            u_int8_t* mGC;          ///< mGC[key] = (the GC ratio * 255.0 of the kmer32)
     };
 }
         
