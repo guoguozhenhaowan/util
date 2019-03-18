@@ -59,4 +59,6 @@ utilities
 |[filterresult.h](./filterresult.h)|FilterResult class to store and accumulate read/pair filter result and output results
 |[filterresult.cpp](./filterresult.cpp)|implementation of some functions in [filterresult.h](./filterresult.h)
 |[gtfilterresult.cpp](./gtfilterresult.cpp)|google test for [filterresult.h](./filterresult.h)
-
+|[duplicate.h](./duplicate.h)|Duplicate class to analyisis read duplicate rate
+|[duplicate.cpp[(./duplicate.cpp)|implementation of some functions in [duplicate.h](./duplicate.h)
+|[gtduplicate.cpp](./gtduplicate.cpp)|gooogle test for [duplicate.h](./duplicate.h)
