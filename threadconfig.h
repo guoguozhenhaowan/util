@@ -12,7 +12,7 @@
 #include "filterresult.h"
 
 class ThreadConfig{
-    public:
+    private:
         Options* opt;
         Stats* preStats1;
         Stats* preStats2;
@@ -25,10 +25,10 @@ class ThreadConfig{
         int threadId;
         int workingSplit;
         size_t currentSplitReads;
-        bool canbeStopped;
+        bool canStop;
 
     public:
-        ThreadConfig(Option* opt, int threadId, bool paired = false);
+        ThreadConfig(Options* opt, int threadId, bool paired = false);
         ~ThreadConfig();
 
         inline Stats* getPreStats1(){return this->preStats1;}

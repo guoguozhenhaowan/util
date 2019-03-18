@@ -1,23 +1,23 @@
 #include "threadconfig.h"
 
-ThreadConfig::ThreadConfig(Options* opt, FilterOpt* fopt, int threadId, bool paired){
+ThreadConfig::ThreadConfig(Options* opt, int threadId, bool paired){
     this->opt = opt;
     this->threadId = threadId;
     this->workingSplit = threadId;
     this->currentSplitReads = 0;
-    this->preStats1 = new Stats(this->opt->seqLen1);
-    this->postStats1 = new Stats(this->opt->seqLen1);
+    this->preStats1 = new Stats(this->opt);
+    this->postStats1 = new Stats(this->opt);
     if(paired){
-        this->preStats2 = new Stats(this->opt->seqLen2);
-        this->postStats2 = new Stats(this->opt->seqLen2);
+        this->preStats2 = new Stats(this->opt, true);
+        this->postStats2 = new Stats(this->opt, true);
     }else{
         this->preStats2 = NULL;
         this->postStats2 = NULL;
     }
     this->writer1 = NULL;
     this->writer2 = NULL;
-    this->filterResult = new FilterResult(
-    this->canBeStopped = false;
+    this->filterResult = new FilterResult(this->opt);
+    this->canStop = false;
 }
 
 ThreadConfig::~ThreadConfig(){
@@ -25,7 +25,7 @@ ThreadConfig::~ThreadConfig(){
 }
 
 void ThreadConfig::cleanup(){
-    if(this->opt->enableSplit && this->opt->splitByFileNumber){
+    if(this->opt->split.enabled && this->opt->split.byFileNumber){
         this->writeEmptyFilesForSplitting();
     }
     this->deleteWriter();
@@ -91,18 +91,41 @@ void ThreadConfig::initWriterForSplit(){
     }
 
     std::string filename1 = util::joinpath(util::dirname(this->opt->out1), num + "." + util::basename(this->opt->out1));
-    if(this->opt->paired){
+    if(!this->opt->isPaired()){
         this->initWriter(filename1);
     }else{
         std::string filename2 = util::joinpath(util::dirname(this->opt->out2), num + "." + util::basename(this->opt->out2));
+        this->initWriter(filename1, filename2);
     }
 }
 
 void ThreadConfig::markProcessed(size_t readNum){
     this->currentSplitReads += readNum;
-    if(!this->opt->enableSplit){
+    if(!this->opt->split.enabled){
         return;
     }
-    if(this->currentSplitReads >= this->opt->splitSize){
-
+    if(this->currentSplitReads >= this->opt->split.size){
+        if(this->opt->split.byFileLines || this->workingSplit + this->opt->thread < this->opt->split.number){
+            this->workingSplit += this->opt->thread;
+            this->initWriterForSplit();
+            this->currentSplitReads = 0;
+        }else{
+            if(this->opt->split.number % this->opt->thread > 0 &&
+               this->threadId >= this->opt->split.number % this->opt->thread){
+                this->canStop = true;
+            }
+        }
     }
+}
+
+void ThreadConfig::writeEmptyFilesForSplitting(){
+    while(this->workingSplit + this->opt->thread < this->opt->split.number){
+        this->workingSplit += this->opt->thread;
+        initWriterForSplit();
+        this->currentSplitReads = 0;
+    }
+}
+
+bool ThreadConfig::canBeStopped(){
+    return this->canStop;
+}

@@ -11,6 +11,19 @@
 #include <map>
 #include "util.h"
 
+/** struct to store duplication analysis options */
+struct DuplicationAnalysisOptions{
+    bool enabled;
+    int keylen;
+    int histSize;
+    /** construct a DuplicationAnalysisOptions and set default values */
+    DuplicationAnalysisOptions(){
+        enabled = true;
+        keylen = 12;
+        histSize = 32;
+    }
+};
+
 /** struct to store various quality threshold dependent fastq read cut/trim options */
 struct QualityCutOptions{
     bool enableFront;      ///< if true, sliding window from front(5'end) until average quality > minFrontQual and cut from the last non-N base of this window
@@ -57,10 +70,10 @@ struct IndexFilterOptions{
 
 /** struct to store over representation sequence analyisis options */
 struct OverrepresentedSequenceAnalysisOptions{
-    bool enabled;                              ///< enable over representation sequence analyisis
-    int sampling;                              ///< sampling frequence for ORA
-    std::map<std::string, size_t> overRepSeqR1;  ///< over represented sequences count of read1
-    std::map<std::string, size_t> overRepSeqR2;  ///< over represented sequences count of read2
+    bool enabled;                                     ///< enable over representation sequence analyisis
+    int sampling;                                     ///< sampling frequence for ORA
+    std::map<std::string, size_t> overRepSeqCountR1;  ///< over represented sequences count of read1
+    std::map<std::string, size_t> overRepSeqCountR2;  ///< over represented sequences count of read2
     /** construct a OverrepresentedSequenceAnalysisOptions object and set default values */
     OverrepresentedSequenceAnalysisOptions(){
         enabled = false;
@@ -218,7 +231,8 @@ struct Options{
     std::string out2;             ///< output read2 filename
     std::string jsonFile;         ///< output json filename
     std::string htmlFile;         ///< output html report filename
-    std::string reportTitle     ; ///< html report title
+    std::string reportTitle;      ///< html report title
+    int digits;                   ///< number of digits for split filename prefix
     int compression;              ///< compression level for gz format output
     bool phred64;                 ///< the input file is using phred64 quality scoring if true 
     bool donotOverwrite;          ///< do not over write existing files
@@ -243,7 +257,8 @@ struct Options{
     IndexFilterOptions indexFilter;                    ///< IndexFilterOptions object
     SplitOptions split;                                ///< SplitOptions object
     KmerOptions kmer;                                  ///< KmerOptions object
-    EstimateOptions est;                               ///< EstimateOptions object 
+    EstimateOptions est;                               ///< EstimateOptions object
+    DuplicationAnalysisOptions duplicate;              ///< DuplicationAnalysisOptions object
     // fuctions of Options
     
     /** Construct a Options object */
