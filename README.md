@@ -62,3 +62,6 @@ utilities
 |[duplicate.h](./duplicate.h)|Duplicate class to analyisis read duplicate rate
 |[duplicate.cpp[(./duplicate.cpp)|implementation of some functions in [duplicate.h](./duplicate.h)
 |[gtduplicate.cpp](./gtduplicate.cpp)|gooogle test for [duplicate.h](./duplicate.h)
+|[adaptertrimmer.h](./adaptertrimmer.h)|AdapterTrimmer class to do adapter trimming
+|[adaptertrimmer.cpp](./adaptertrimmer.cpp)|implementation of some functions in [adaptertrimmer.h](./adaptertrimmer.h)
+|[gtadaptertrimmer.cpp](./gtadaptertrimmer.cpp)|google test for [adaptertrimmer.h](./adaptertrimmer.h)
