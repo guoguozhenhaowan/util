@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cctype>
 #include <vector>
+#include <mutex>
 #include <numeric>
 #include <iostream>
 #include <algorithm>
@@ -391,6 +392,17 @@ namespace util{
             default:
                 return 'N';
         }
+    }
+
+    extern std::mutex logmtx; ///< global loginfo function lock
+    /** write a log message to std::cerr in a thread-safe way
+     * @param s log message 
+     */
+    inline void loginfo(const std::string& s){
+        std::lock_guard<std::mutex> l(logmtx);
+        time_t tt = time(NULL);
+        tm* t = std::localtime(&tt);
+        std::cerr << "[" << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "] " << s << std::endl;
     }
 }
 

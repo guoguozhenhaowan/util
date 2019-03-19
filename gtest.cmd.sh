@@ -6,6 +6,8 @@ g++ -std=c++11 -lgtest gtseq.cpp
 g++ -std=c++11 -lgtest gtread.cpp read.cpp
 # test fqreader.h
 g++ -std=c++11 -lgtest -lz gtfqreader.cpp fqreader.cpp
+# test polyx.h
+g++ -std=c++11 -lgtest gtpolyx.cpp polyx.cpp
 # test writer.h
 g++ -std=c++11 -lz -lgtest gtwriter.cpp writer.cpp fqreader.cpp
 # test nucleotidetree.h

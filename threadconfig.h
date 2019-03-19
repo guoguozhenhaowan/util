@@ -1,8 +1,8 @@
 #ifndef THREAD_CONFIG_H
 #define THREAD_CONFIG_H
 
-#include <cstdio>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 #include "util.h"
@@ -11,51 +11,56 @@
 #include "options.h"
 #include "filterresult.h"
 
-class ThreadConfig{
-    private:
-        Options* opt;
-        Stats* preStats1;
-        Stats* preStats2;
-        Stats* postStats1;
-        Stats* postStats2;
-        Writer* writer1;
-        Writer* writer2;
-        FilterResult* filterResult;
 
-        int threadId;
-        int workingSplit;
-        size_t currentSplitReads;
-        bool canStop;
-
+namespace fqlib{
+    class ThreadConfig{
     public:
         ThreadConfig(Options* opt, int threadId, bool paired = false);
         ~ThreadConfig();
-
-        inline Stats* getPreStats1(){return this->preStats1;}
-        inline Stats* getPreStats2(){return this->preStats2;}
-        inline Stats* getPostStats1(){return this->postStats1;}
-        inline Stats* getPostStats2(){return this->postStats2;}
-        inline Writer* getWriter1(){return this->writer1;}
-        inline Writer* getWriter2(){return this->writer2;}
-        inline FilterResult* getFilterResult(){return this->filterResult;}
-
-        void initWriter(const std::string& filename);
-        void initWriter(const std::string& filename1, const std::string& filename2);
+        inline Stats* getPreStats1() {return mPreStats1;}
+        inline Stats* getPostStats1() {return mPostStats1;}
+        inline Stats* getPreStats2() {return mPreStats2;}
+        inline Stats* getPostStats2() {return mPostStats2;}
+        inline Writer* getWriter1() {return mWriter1;}
+        inline Writer* getWriter2() {return mWriter2;}
+        inline FilterResult* getFilterResult() {return mFilterResult;}
+    
+        void initWriter(std::string filename1);
+        void initWriter(std::string filename1, std::string filename2);
         void initWriter(std::ofstream* stream);
         void initWriter(std::ofstream* stream1, std::ofstream* stream2);
         void initWriter(gzFile gzfile);
         void initWriter(gzFile gzfile1, gzFile gzfile2);
-
+    
         void addFilterResult(int result);
-        inline int getThreadId(){return this->threadId;}
-        
-        void markProcessed(size_t readNum);
+    
+        int getThreadId() {return mThreadId;}
+        // for splitting output
+        // increase mCurrentSplitReads by readNum, and check it with options->split.size;
+        void markProcessed(long readNum);
         void initWriterForSplit();
         bool canBeStopped();
         void cleanup();
-
+    
+    private:
         void deleteWriter();
         void writeEmptyFilesForSplitting();
-};
-        
+    
+    private:
+        Stats* mPreStats1;
+        Stats* mPostStats1;
+        Stats* mPreStats2;
+        Stats* mPostStats2;
+        Writer* mWriter1;
+        Writer* mWriter2;
+        Options* mOptions;
+        FilterResult* mFilterResult;
+    
+        // for spliting output
+        int mThreadId;
+        int mWorkingSplit;
+        long mCurrentSplitReads;
+        bool mCanBeStopped;
+    };
+}
 #endif

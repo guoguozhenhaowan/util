@@ -1,78 +1,81 @@
 #include "writerthread.h"
 
-WriterThread::WriterThread(const std::string& filename, int compression){
-    this->writer = NULL;
-    this->inputCounter = 0;
-    this->outputCounter = 0;
-    this->inputCompleted = false;
-    this->filename = filename;
-
-    this->ringBuffer = new char*[compar::PACK_NUM_LIMIT];
-    std::memset(this->ringBuffer, 0, sizeof(char*) * compar::PACK_NUM_LIMIT);
-    this->ringBufferSizes = new size_t[compar::PACK_NUM_LIMIT];
-    std::memset(this->ringBufferSizes, 0, sizeof(size_t) * compar::PACK_NUM_LIMIT);
-    this->iniWriter(filename, compression);
-}
-
-WriterThread::~WriterThread(){
-    this->cleanup();
-    delete this->ringBuffer;
-}
-
-bool WriterThread::isCompleted(){
-    return this->inputCompleted && (this->outputCounter == this->inputCounter);
-}
-
-bool WriterThread::setInputCompleted(){
-    this->inputCompleted = true;
-    return true;
-}
-
-void WriterThread::output(){
-    if(this->outputCounter >= this->inputCounter){
-        ::usleep(100);
+namespace fqlib{
+    WriterThread::WriterThread(Options* opt, const std::string& filename){
+        mOptions = opt;
+        mWriter = NULL;
+        mInputCounter = 0;
+        mOutputCounter = 0;
+        mInputCompleted = false;
+        mFilename = filename;
+    
+        mRingBuffer = new char*[compar::PACK_NUM_LIMIT];
+        std::memset(mRingBuffer, 0, sizeof(char*) * compar::PACK_NUM_LIMIT);
+        mRingBufferSizes = new size_t[compar::PACK_NUM_LIMIT];
+        std::memset(mRingBufferSizes, 0, sizeof(size_t) * compar::PACK_NUM_LIMIT);
+        iniWriter(mFilename);
     }
-    while(this->outputCounter < this->inputCounter){
-        this->writer->write(this->ringBuffer[this->outputCounter], 
-                            this->ringBufferSizes[this->outputCounter]);
-        delete this->ringBuffer[this->outputCounter];
-        this->ringBuffer[this->outputCounter] = NULL;
-        ++this->outputCounter;
+    
+    WriterThread::~WriterThread(){
+        cleanup();
+        delete mRingBuffer;
     }
-}
-
-void WriterThread::input(char* cstr, size_t size){
-    this->ringBuffer[this->inputCounter] = cstr;
-    this->ringBufferSizes[this->inputCounter] = size;
-    ++this->inputCounter;
-}
-
-void WriterThread::cleanup(){
-    this->deleteWriter();
-}
-
-void WriterThread::deleteWriter(){
-    if(this->writer != NULL){
-        delete this->writer;
-        this->writer = NULL;
+    
+    bool WriterThread::isCompleted(){
+        return mInputCompleted && (mOutputCounter == mInputCounter);
     }
-}
-
-void WriterThread::iniWriter(const std::string& filename, int compression){
-    this->deleteWriter();
-    this->writer = new Writer(filename, compression);
-}
-
-void WriterThread::iniWriter(std::ofstream* ofs){
-    this->deleteWriter();
-    this->writer = new Writer(ofs);
-}
-
-void WriterThread::iniWriter(gzFile gzfile){
-    this->deleteWriter();
-    this->writer = new Writer(gzfile);
-}
-
-size_t WriterThread::bufferLength(){
-    return this->inputCounter - this->outputCounter;
+    
+    bool WriterThread::setInputCompleted(){
+        mInputCompleted = true;
+        return true;
+    }
+    
+    void WriterThread::output(){
+        if(mOutputCounter >= mInputCounter){
+            ::usleep(100);
+        }
+        while(mOutputCounter < mInputCounter){
+            mWriter->write(mRingBuffer[mOutputCounter], 
+                                mRingBufferSizes[mOutputCounter]);
+            delete mRingBuffer[mOutputCounter];
+            mRingBuffer[mOutputCounter] = NULL;
+            ++mOutputCounter;
+        }
+    }
+    
+    void WriterThread::input(char* cstr, size_t size){
+        mRingBuffer[mInputCounter] = cstr;
+        mRingBufferSizes[mInputCounter] = size;
+        ++mInputCounter;
+    }
+    
+    void WriterThread::cleanup(){
+        deleteWriter();
+    }
+    
+    void WriterThread::deleteWriter(){
+        if(mWriter != NULL){
+            delete mWriter;
+            mWriter = NULL;
+        }
+    }
+    
+    void WriterThread::iniWriter(const std::string& mFilename){
+        deleteWriter();
+        mWriter = new Writer(mFilename, mOptions->compression);
+    }
+    
+    void WriterThread::iniWriter(std::ofstream* ofs){
+        deleteWriter();
+        mWriter = new Writer(ofs);
+    }
+    
+    void WriterThread::iniWriter(gzFile gzfile){
+        deleteWriter();
+        mWriter = new Writer(gzfile);
+    }
+    
+    size_t WriterThread::bufferLength(){
+        return mInputCounter - mOutputCounter;
+    }
 }

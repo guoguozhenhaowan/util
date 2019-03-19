@@ -237,6 +237,11 @@ TEST(util, complement){
     EXPECT_EQ(util::complement('X'), 'N');
 }
 
+// test util::loginfo
+TEST(util, loginfo){
+    util::loginfo("hello world!");
+}
+
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
