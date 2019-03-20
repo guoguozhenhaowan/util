@@ -28,7 +28,7 @@ namespace fqlib{
             enabled = false;
             minLen = 10;
         }
-    }
+    };
 
     /** struct to store PolyX trimming options */
     struct PolyXTrimmerOptions{
@@ -39,7 +39,7 @@ namespace fqlib{
             enabled = false;
             minLen = 10;
         }
-    }
+    };
 
     /** struct to store umi process options */
     struct UMIOptions{

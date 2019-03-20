@@ -8,19 +8,24 @@
 #include "filereader.h"
 #include "filewriter.h"
 
+/** object to store some infomation ofan record of refgene with transcript number added */
 struct ExonRecord{
-    std::vector<std::pair<size_t, size_t>> exoncoord;
-    size_t cdsStart;
-    size_t cdsEnd;
-    int firstCDSIndex;
-    int lastCDSIndex;
-    std::string chromeName;
-    std::string geneName;
-    std::string trsName;
-    std::string trsVer;
+    std::vector<std::pair<size_t, size_t>> exoncoord; ///< exon coordinates pair records in genome
+    size_t cdsStart;          ///< CDS starting coordinates in genome
+    size_t cdsEnd;            ///< CDS ending coordinates in genome
+    int firstCDSIndex;        ///< first CDS index in exoncoord
+    int lastCDSIndex;         ///< last CDS index in exoncorod
+    std::string chromeName;   ///< chromesome name of this gene                
+    std::string geneName;     ///< gene name 
+    std::string trsName;      ///< transcript name
+    std::string trsVer;       ///< transcript version
 
+    /** construct an ExonRecord object */
     ExonRecord() = default;
+    /** destroy an ExonRecord object */
     ~ExonRecord() = default;
+   
+    /** get the cds index in exoncoord and adjust the edging coordinates */
     void truncateByCDS(){
         firstCDSIndex = 0;
         lastCDSIndex = 0;
@@ -37,6 +42,11 @@ struct ExonRecord{
         }
     }
 
+    /** output an exon record to ostream
+     * @param os reference to a ostream
+     * @param rec reference to a ExonRecord object
+     * @return reference to a ostream
+     */
     friend std::ostream& operator<<(std::ostream& os, const ExonRecord& rec){
         if(rec.exoncoord.size() == 0){
             return os;
@@ -52,6 +62,11 @@ struct ExonRecord{
     }
 };
 
+/** main function to accept arguments
+ * @argc number of arguments provided externally
+ * @argv array of char* store the externally provided arguments
+ * @return 0 if exit successfuly
+ */
 int main(int argc, char** argv){
     if(argc < 4){
         std::cout << std::string(argv[0]) << " <refgenewithaccs> <transcriptlist> <output> " << std::endl;
@@ -94,4 +109,3 @@ int main(int argc, char** argv){
         fwriter.writeString(oss.str());
     }
 }
-

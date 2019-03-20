@@ -41,9 +41,11 @@ namespace fqlib{
             mRingBuffer[mOutputCounter] = NULL;
             ++mOutputCounter;
         }
+        mOutputCounter %= compar::PACK_NUM_LIMIT;
     }
     
     void WriterThread::input(char* cstr, size_t size){
+        mInputCounter %= compar::PACK_NUM_LIMIT;
         mRingBuffer[mInputCounter] = cstr;
         mRingBufferSizes[mInputCounter] = size;
         ++mInputCounter;
