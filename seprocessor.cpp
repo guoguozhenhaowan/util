@@ -217,6 +217,183 @@ namespace fqlib{
             threads[t] = new std::thread(std::bind(&SingleEndProcessor::consumerTask, this, configs[t]));
         }
 
+        std::thread* leftWriterThread = NULL;
+        if(mLeftWriter){
+            leftWriterThread = new std::thread(std::bind(&SingleEndProcessor::writeTask, this, mLeftWriter));
+        }
+        producer.join();
+        for(int t = 0; t < mOptions->thread; ++t){
+            threads[t]->join();
+        }
+
+        if(!mOptions->split.enabled){
+            if(leftWriterThread){
+                leftWriterThread->join();
+            }
+        }
+
+        if(mOptions->verbose){
+            util::loginfo("start to generate reports\n");
+        }
+        // merge stats and read filter results
+        std::vector<Stats*> preStats;
+        std::vector<Stats*> postStats;
+        std::vector<FilterResult*> filterResults;
+        for(int t = 0; t < mOptions->thread; ++t){
+            preStats.push_back(configs[t]->getPreStats1());
+            postStats.push_back(config[t]->getPostStats1());
+            filterResults.push_back(config[t]->getFilterResult());
+        }
+        Stats* finalPreStats = Stats::merge(preStats);
+        Stats* filanPostStats = Stats::merge(postStats);
+        FilterResult* finalFilterResult = FilterResult::merge(filterResults);
+        // output filter results
+        std::cerr << "Read1 before filtering: " << std::endl;
+        std::cerr << (*finalPreStats) << std::endl;
+        std::cerr << "Read1 after filtering: " << std::endl;
+        std::cerr << (*finalPreStats) << std::endl;
+        std::cerr << "Filtering result:" << std::endl;
+        std::cerr << (*finalFilterResult) << std::endl;
+        int* dupHist = NULL;
+        double* dupMeanGC = NULL;
+        double dupRate = 0.0;
+        // output duplicate results
+        if(mOptions->duplicate.enabled){
+            dupHist = new int[mOptions->duplicate.histSize];
+            std::memset(dupHist, 0, sizeof(int) * mOptions->duplicate.histSize;
+            dupMeanGC = new double[mOptions->duplicate.histSize];
+            std::memset(dupMeanGC, 0, sizeof(double) * mOptions->duplicate.histSize]);
+            dupRate = mDuplicate->statAll(dupHist, dupMeanGC, mOptions->duplicate.histSize);
+            std::cerr << std::endl;
+            std::cerr << "Duplicate rate(may be overestimated since this is SE data): " << dupRate << std::enl;
+        }
+        // make JSON report
+        JsonReporter jr(mOptions);
+        jr.setDupHist(dupHist, dupMeanGC, dupRate);
+        jr.report(finalFilterResult, finalPreStats, finalPostStats);
+
+        // make HTML report
+        HtmlReporter hr(mOptions);
+        hr.setDupHist(dupHist, dupMeanGC, dupRate);
+        hr.report(finalFilterResult, finalPreStats, finalPostStats);
+
+        // clean up
+        for(int t=0; t<mOptions->thread; t++){
+            delete threads[t];
+            threads[t] = NULL;
+            delete configs[t];
+            configs[t] = NULL;
+        }
+
+        delete finalPreStats;
+        delete finalPostStats;
+        delete finalFilterResult;
+
+        if(mOptions->duplicate.enabled) {
+            delete[] dupHist;
+            delete[] dupMeanGC;
+        }
+
+        delete[] threads;
+        delete[] configs;
+
+        if(leftWriterThread)
+            delete leftWriterThread;
+            if(!mOptions->split.enabled)
+            closeOutput();
+
+        return true;
     }
 
+    void SingleEndProcessor::processSingleEnd(ReadPack* pack, ThreadConfig *config){
+        std::string outstr;
+        int readPassed = 0;
+        for(int p = 0; p < pack->count; ++p){
+            // original read1
+            Read* or1 = pack->data[p];
+            // stats the original read before trimming 
+            config->getPreStats1()->statRead(or1);
+            // handling the duplication profiling
+            if(mDuplicate){
+                mDuplicate->statRead(or1);
+            }
+            // filter by index
+            if(mOptions->indexFilter.enabled && mFilter->filterByIndex(or1)){
+                delete or1;
+                continue;
+            }
+            // umi processing
+            if(mOptions->umi.enabled){
+                mUmiProcessor->process(ori1);
+            }
+            // trim in head and tail, and apply quality cut in sliding window
+            Read* r1 = mFilter->trimAndCut(or1, mOptions->trim.front1, mOptions->trim.tail1);
+            // polyG trimming
+            if(r1 != NULL){
+                if(mOptions->polyGTrim.enabled){
+                    PolyX::trimPolyG(r1, config->getFilterResult(), mOptions->polyGTrim.minLen);
+                }
+            }
+            // adapter trimming
+            if(r1 != NULL && mOptions->adapter.enableTriming && mOptions->adapter.adapterSeqR1Provided){
+                AdapterTrimmer::trimBySequence(r1, config->getFilterResult(), mOptions->adapter.inputAdapterSeqR1);
+            }
+            // polyX trimming
+            if(r1 != NULL){
+                if(mOptions->polyXTrim.enabled){
+                    PolyX::trimPolyX(r1, config->getFilterResult(), mOptions->polyXTrim.minLen);
+                }
+            }
+            // trim max length
+            if(r1 != NULL){
+                if(mOptions->trim.maxLen1 > 0 && mOptions->trim.maxLen1 < r1->length()){
+                    r1->resize(mOptions->trim.maxLen1);
+                }
+            }
+
+            // get quality quality nbase length complexity...passing status
+            int result = mFilter->passFilter(r1);
+            config->addFilterResult(result);
+            // stats the read after filtering
+            if(r1 != NULL && result == compar::PASS_FILTER){
+                outstr += r1->toString();
+                config->getPostStats1()->statRead(r1);
+                ++readPassed;
+            }
+            // cleanup memory
+            delete or1;
+            if(r1 != or1 && r1 != NULL){
+                delete  r1;
+            }
+        }
+        // if splitting output, then no lock is need since different threads write different files
+        if(!mOptions->split.enabled){
+            mOutputMtx.lock();
+        }
+        if(mOptions->outputToSTDOUT){
+            std::fwrite(outstr.c_str(), 1, outstr.length(), stdout);
+        }else if(mOptions->split.enabled){
+            // split output by each worker thread
+            if(!mOptions->out1.empty()){
+                config->getWriter1()->writeString(outstr);
+            }
+        }else{
+            if(mLeftWriter){
+                char* ldata = new char[outstr.size()];
+                std::memcpy(ldata, outstr.c_str(), outstr.size());
+                mLeftWriter->input(ldata, outstr.size());
+            }
+        }
+        if(!mOptions->split.enabled){
+            mOutputMtx.unlock();
+        }
+        if(mOptions->split.byFileLines){
+            config->markProcessed(readPassed);
+        }else{
+            config->markProcessed(pack->count);
+        }
+        delete pack->data;
+        delete pack;
+        return true;
+    }
 }

@@ -108,8 +108,8 @@ namespace fqlib{
             return ;
         // if splitting is enabled, check whether current file is full
         if(mCurrentSplitReads >= mOptions->split.size) {
-            // if it's splitting by file number, totally we cannot exceed split.number
-            // if it's splitting by file lines, then we don't need to check
+            // if splitting by file lines, just increase output files and write in new files afterwards
+            // if splitting by file number, check whether new ouput file will exceed split.number
             if(mOptions->split.byFileLines || mWorkingSplit + mOptions->thread < mOptions->split.number ){
                 mWorkingSplit += mOptions->thread;
                 initWriterForSplit();

@@ -14,12 +14,14 @@
 #include "filter.h"
 #include "fqreader.h"
 #include "util.h"
-//#include "adaptertrimmer.h"
+#include "adaptertrimmer.h"
 #include "umiprocessor.h"
 #include "writerthread.h"
-#include "duplicate.h"
-#include "threadconfig.h"
 #include "polyx.h"
+#include "threadconfig.h"
+#include "duplicate.h"
+#include "stats.h"
+#include "filterresult.h"
 
 namespace fqlib{
     struct ReadPack{

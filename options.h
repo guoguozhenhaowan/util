@@ -10,8 +10,6 @@
 #include <vector>
 #include <map>
 #include "util.h"
-
-namespace fqlib{
 #define UMI_LOC_NONE 0
 #define UMI_LOC_INDEX1 1
 #define UMI_LOC_INDEX2 2
@@ -19,6 +17,30 @@ namespace fqlib{
 #define UMI_LOC_READ2 4
 #define UMI_LOC_PER_INDEX 5
 #define UMI_LOC_PER_READ 6
+
+namespace fqlib{
+    /** struct to store PolyG trimming options */
+    struct PolyGTrimmerOptions{
+        bool enabled;       ///< enable PolyG trimming
+        int minLen;         ///< minimum length needed to compare to get a proper polyG tail(total mismatch < 5 || each8basemismatches <= 1)
+        /** construct a PolyGTrimmerOptions and set default values */
+        PolyGTrimmerOptions(){
+            enabled = false;
+            minLen = 10;
+        }
+    }
+
+    /** struct to store PolyX trimming options */
+    struct PolyXTrimmerOptions{
+        bool enabled;       ///< enable PolyX trimming
+        int minLen;         ///< minimum length needed to compare to get a proper polyX tail(total mismatch < 5 || each8basemismatches <= 1)
+        /** construct a PolyXTrimmerOptions and set default values */
+        PolyXTrimmerOptions(){    
+            enabled = false;
+            minLen = 10;
+        }
+    }
+
     /** struct to store umi process options */
     struct UMIOptions{
         bool enabled;     ///< enable umi process if true
@@ -286,6 +308,8 @@ namespace fqlib{
         EstimateOptions est;                               ///< EstimateOptions object
         DuplicationAnalysisOptions duplicate;              ///< DuplicationAnalysisOptions object
         UMIOptions umi;                                    ///< UMIOptions object 
+        PolyGTrimmerOptions polyGTrim;                     ///< PolyGTrimmerOptions object
+        PolyXTrimmerOptions polyXTrim;                     ///< PolyXTrimmerOptions object
         // fuctions of Options
         
         /** Construct a Options object */
