@@ -113,13 +113,16 @@ def updateDic(fileList, dicFile):
         fwl.close();
     # check for old values needed to be removed
     delLib = []
+    dropkey = []
     for sampleName in dicKeys:
         oriLen = len(fileDic[sampleName])
         delLib.extend([libPath for libPath in fileDic[sampleName] if not os.access(libPath, os.F_OK)])
         fileDic[sampleName] = [libPath for libPath in fileDic[sampleName] if os.access(libPath, os.F_OK)]
         modLen = len(fileDic[sampleName])
         if modLen == 0:
-            tmpKey = fileDic.pop(sampleName)
+            dropkey.append(sampleName);
+    for k in dropkey:
+        fileDic.pop(k)
     if len(delLib) >= 1:
         fwd = open("{0}.del.log".format(dicFile), 'a')
         fwd.write("{0}\n{1}\n".format(sampleName, "\n".join(delLib)))
