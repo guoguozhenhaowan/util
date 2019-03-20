@@ -8,8 +8,11 @@
 #include <vector>
 #include <mutex>
 #include <numeric>
+#include <fstream>
+#include <utility>
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include <sys/stat.h>
 
 /** utility to operate on strings and directories */
@@ -87,6 +90,7 @@ namespace util{
      * @param sep seperators, can contain a series of seperators
      */
     inline void split(const std::string& str, std::vector<std::string>& vec, std::string sep = " "){
+        vec.clear();
         std::string::size_type las, cur;
         las = cur = str.find_first_not_of(sep);
         while((las = str.find_first_not_of(sep, las)) != std::string::npos){
@@ -403,6 +407,43 @@ namespace util{
         time_t tt = time(NULL);
         tm* t = std::localtime(&tt);
         std::cerr << "[" << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "] " << s << std::endl;
+    }
+
+    /** make a list from file by line 
+     * @param filename input file
+     * @param ret vector to store stripped line
+     */ 
+    inline void makeListFromFileByLine(const std::string& filename, std::vector<std::string>& ret){
+        std::ifstream fr(filename);
+        std::string line;
+        while(std::getline(fr, line)){
+            util::strip(line);
+            ret.push_back(line);
+        }
+    }
+
+    /** convert a vector of strings to integers
+     * @param vs vector of strings
+     * @param vi vector of integers
+     */
+    template<typename T>
+    inline void strvec2intvec(const std::vector<std::string>& vs, std::vector<T>& vi){
+        vi.clear();
+        std::transform(vs.begin(), vs.end(), std::back_inserter(vi), std::bind(std::atoi, std::bind([&](std::string str){return str.c_str();}, std::placeholders::_1)));
+    }
+
+    /** convert two vector to a vector of pairs
+     * @param v1 vector 1
+     * @param v2 vector 2
+     * @param vp pair vector
+     */
+    template<typename T>
+    inline void vec2pairvec(const std::vector<T>& v1, const std::vector<T>& v2, std::vector<std::pair<T, T>>& vp){
+        vp.clear();
+        int maxlen = std::min(v1.size(), v2.size());
+        for(int i = 0; i < maxlen; ++i){
+            vp.push_back(std::make_pair(v1[i], v2[i]));
+        }
     }
 }
 
