@@ -6,7 +6,7 @@ namespace fqlib{
         mPaired = paired;
         mTrimmedAdapterBases = 0;
         mTrimmedAdapterReads = 0;
-        for(int i = 0; i < compar::FILTER_RESULT_TYPES; ++i){
+        for(int i = 0; i < COMMONCONST::FILTER_RESULT_TYPES; ++i){
             mFilterReadStats[i] = 0;
         }
         mCorrectionMatrix = new size_t[64];
@@ -20,7 +20,7 @@ namespace fqlib{
     }
     
     void FilterResult::addFilterResult(int result){
-        if(result < compar::PASS_FILTER || result >= compar::FILTER_RESULT_TYPES){
+        if(result < COMMONCONST::PASS_FILTER || result >= COMMONCONST::FILTER_RESULT_TYPES){
             return;
         }
         if(mPaired){
@@ -40,7 +40,7 @@ namespace fqlib{
         for(int i = 0; i < list.size(); ++i){
             // update mFilterReadStats 
             size_t* curStats = list[i]->getFilterReadStats();
-            for(int j = 0; j < compar::FILTER_RESULT_TYPES; ++j){
+            for(int j = 0; j < COMMONCONST::FILTER_RESULT_TYPES; ++j){
                 target[j] += curStats[j];
             }
             // update mCorrectionMatrix
@@ -152,17 +152,17 @@ namespace fqlib{
     
     std::ostream& operator<<(std::ostream& os, FilterResult* re){
         Options* mOptions = re->mOptions;
-        os << "reads passed filter: " << re->mFilterReadStats[compar::PASS_FILTER] << "\n";
-        os << "reads failed due to low quality: " << re->mFilterReadStats[compar::FAIL_QUALITY] << "\n";
-        os << "reads failed due to too many N: " << re->mFilterReadStats[compar::FAIL_N_BASE] << "\n";
+        os << "reads passed filter: " << re->mFilterReadStats[COMMONCONST::PASS_FILTER] << "\n";
+        os << "reads failed due to low quality: " << re->mFilterReadStats[COMMONCONST::FAIL_QUALITY] << "\n";
+        os << "reads failed due to too many N: " << re->mFilterReadStats[COMMONCONST::FAIL_N_BASE] << "\n";
         if(mOptions->lengthFilter.enabled){
-            os << "reads failed due to too short: " << re->mFilterReadStats[compar::FAIL_LENGTH] << "\n";
+            os << "reads failed due to too short: " << re->mFilterReadStats[COMMONCONST::FAIL_LENGTH] << "\n";
             if(mOptions->lengthFilter.maxReadLength > 0){
-                os << "reads failed due to too long: " << re->mFilterReadStats[compar::FAIL_TOO_LONG] << "\n";
+                os << "reads failed due to too long: " << re->mFilterReadStats[COMMONCONST::FAIL_TOO_LONG] << "\n";
             }
         }
         if(mOptions->complexityFilter.enabled){
-            os << "reads failed due to low complexity: " << re->mFilterReadStats[compar::FAIL_COMPLEXITY] << "\n";
+            os << "reads failed due to low complexity: " << re->mFilterReadStats[COMMONCONST::FAIL_COMPLEXITY] << "\n";
         }
         if(mOptions->adapter.enableTriming){
             os << "reads with adapter trimmed: " << re->mTrimmedAdapterReads << "\n";
@@ -177,20 +177,20 @@ namespace fqlib{
     
     void FilterResult::reportJsonBasic(std::ofstream& ofs, const std::string& padding){
         ofs << "{\n";
-        jsonutil::writeRecord(ofs, padding, "passed_filter_reads", mFilterReadStats[compar::PASS_FILTER]);
-        jsonutil::writeRecord(ofs, padding, "low_quality_reads", mFilterReadStats[compar::FAIL_QUALITY]);
-        jsonutil::writeRecord(ofs, padding, "too_many_N_reads", mFilterReadStats[compar::FAIL_N_BASE]);
+        jsonutil::writeRecord(ofs, padding, "passed_filter_reads", mFilterReadStats[COMMONCONST::PASS_FILTER]);
+        jsonutil::writeRecord(ofs, padding, "low_quality_reads", mFilterReadStats[COMMONCONST::FAIL_QUALITY]);
+        jsonutil::writeRecord(ofs, padding, "too_many_N_reads", mFilterReadStats[COMMONCONST::FAIL_N_BASE]);
         if(mOptions->correction.enabled){
             jsonutil::writeRecord(ofs, padding, "corrected_reads", mCorrectedReads);
             jsonutil::writeRecord(ofs, padding, "corrected_bases", getTotalCorrectedBases());
         }
         if(mOptions->complexityFilter.enabled){
-            jsonutil::writeRecord(ofs, padding, "low_complexity_reads", mFilterReadStats[compar::FAIL_COMPLEXITY]);
+            jsonutil::writeRecord(ofs, padding, "low_complexity_reads", mFilterReadStats[COMMONCONST::FAIL_COMPLEXITY]);
         }
         if(mOptions->lengthFilter.enabled){
-            jsonutil::writeRecord(ofs, padding, "too_short_reads", mFilterReadStats[compar::FAIL_LENGTH]);
+            jsonutil::writeRecord(ofs, padding, "too_short_reads", mFilterReadStats[COMMONCONST::FAIL_LENGTH]);
             if(mOptions->lengthFilter.maxReadLength > 0){
-                jsonutil::writeRecord(ofs, padding, "too_long_reads", mFilterReadStats[compar::FAIL_TOO_LONG]);
+                jsonutil::writeRecord(ofs, padding, "too_long_reads", mFilterReadStats[COMMONCONST::FAIL_TOO_LONG]);
             }
         }
         ofs << padding << "}," << std::endl;
@@ -198,20 +198,20 @@ namespace fqlib{
     
     void FilterResult::reportHtmlBasic(std::ofstream& ofs, size_t totalReads, size_t totalBases){
         ofs << "<table class='summary_table'>\n";
-        htmlutil::outputTableRow(ofs, "reads passed filters:", htmlutil::formatNumber(mFilterReadStats[compar::PASS_FILTER]) + " (" + std::to_string(mFilterReadStats[compar::PASS_FILTER] * 100.0 / totalBases) + "%)");
-        htmlutil::outputTableRow(ofs, "low_quality_reads", htmlutil::formatNumber(mFilterReadStats[compar::FAIL_QUALITY]) + " (" + std::to_string(mFilterReadStats[compar::FAIL_QUALITY] * 100.0 / totalBases) + "%)");
-        htmlutil::outputTableRow(ofs, "too_many_N_reads", htmlutil::formatNumber(mFilterReadStats[compar::FAIL_N_BASE]) + " (" + std::to_string(mFilterReadStats[compar::FAIL_N_BASE] * 100.0 / totalBases) + "%)");
+        htmlutil::outputTableRow(ofs, "reads passed filters:", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::PASS_FILTER]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::PASS_FILTER] * 100.0 / totalBases) + "%)");
+        htmlutil::outputTableRow(ofs, "low_quality_reads", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::FAIL_QUALITY]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::FAIL_QUALITY] * 100.0 / totalBases) + "%)");
+        htmlutil::outputTableRow(ofs, "too_many_N_reads", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::FAIL_N_BASE]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::FAIL_N_BASE] * 100.0 / totalBases) + "%)");
         if(mOptions->correction.enabled){
             htmlutil::outputTableRow(ofs, "corrected_reads", htmlutil::formatNumber(mCorrectedReads) + " (" + std::to_string(mCorrectedReads * 100.0 / totalReads) + "%)");
             htmlutil::outputTableRow(ofs, "corrected_bases", htmlutil::formatNumber(getTotalCorrectedBases()) + " (" + std::to_string(getTotalCorrectedBases()) + " (" + std::to_string(getTotalCorrectedBases() * 100.0 / totalBases) + "%)");
         }
         if(mOptions->complexityFilter.enabled){
-            htmlutil::outputTableRow(ofs, "low_complexity_reads", htmlutil::formatNumber(mFilterReadStats[compar::FAIL_COMPLEXITY]) + " (" + std::to_string(mFilterReadStats[compar::FAIL_COMPLEXITY] * 100.0 / totalReads) + "%)");
+            htmlutil::outputTableRow(ofs, "low_complexity_reads", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::FAIL_COMPLEXITY]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::FAIL_COMPLEXITY] * 100.0 / totalReads) + "%)");
         }
         if(mOptions->lengthFilter.enabled){
-            htmlutil::outputTableRow(ofs, "too_short_reads", htmlutil::formatNumber(mFilterReadStats[compar::FAIL_LENGTH]) + " (" + std::to_string(mFilterReadStats[compar::FAIL_LENGTH] * 100.0 / totalReads) + "%)");
+            htmlutil::outputTableRow(ofs, "too_short_reads", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::FAIL_LENGTH]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::FAIL_LENGTH] * 100.0 / totalReads) + "%)");
             if(mOptions->lengthFilter.maxReadLength > 0){
-                htmlutil::outputTableRow(ofs, "too_long_reads", htmlutil::formatNumber(mFilterReadStats[compar::FAIL_TOO_LONG]) + " (" + std::to_string(mFilterReadStats[compar::FAIL_TOO_LONG] * 100.0 /totalReads) + "%)");
+                htmlutil::outputTableRow(ofs, "too_long_reads", htmlutil::formatNumber(mFilterReadStats[COMMONCONST::FAIL_TOO_LONG]) + " (" + std::to_string(mFilterReadStats[COMMONCONST::FAIL_TOO_LONG] * 100.0 /totalReads) + "%)");
             }
         }
     }

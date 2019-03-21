@@ -50,8 +50,8 @@ namespace fqlib{
     }
 
     void SingleEndProcessor::initReadPackRepository(){
-        mRepo.packBuffer = new ReadPack*[compar::MAX_PACKS_IN_READPACKREPO];
-        std::memset(mRepo.packBuffer, 0, sizeof(ReadPack*) * compar::MAX_PACKS_IN_READPACKREPO);
+        mRepo.packBuffer = new ReadPack*[COMMONCONST::MAX_PACKS_IN_READPACKREPO];
+        std::memset(mRepo.packBuffer, 0, sizeof(ReadPack*) * COMMONCONST::MAX_PACKS_IN_READPACKREPO);
         mRepo.writePos = 0;
         mRepo.readPos = 0;
     }
@@ -62,7 +62,7 @@ namespace fqlib{
     }
 
     void SingleEndProcessor::producePack(ReadPack* pack){
-        while(mRepo.writePos >= < compar::MAX_PACKS_IN_READPACKREPO){
+        while(mRepo.writePos >= < COMMONCONST::MAX_PACKS_IN_READPACKREPO){
             usleep(60)
         }
         mRepo.packBuffer[mRepo.writePos] = pack;
@@ -77,8 +77,8 @@ namespace fqlib{
         int slept = 0;
         long readNum = 0;  // total number of reads have been loaded into memory and put into mReop
         bool splitSizeReEvaluated = false;
-        Read** data = new Read*[compar::MAX_READS_IN_PACK];
-        std::memset(data, 0, sizeof(Read*) * compar::MAX_READS_IN_PACK);
+        Read** data = new Read*[COMMONCONST::MAX_READS_IN_PACK];
+        std::memset(data, 0, sizeof(Read*) * COMMONCONST::MAX_READS_IN_PACK);
         FqReader reader(mOptions->in1, true, mOptions->phred64);
         int count = 0; // number of reads have been loaded into memory and put into data but not mReop 
         bool needToBreak = false;
@@ -110,23 +110,23 @@ namespace fqlib{
                 util::loginfo(msg);
             }
             // the pack is full or first N reads needed have got
-            if(count == compar::MAX_READS_IN_PACK || needToBreak){
+            if(count == COMMONCONST::MAX_READS_IN_PACK || needToBreak){
                 ReadPack* pack = new ReadPack;
                 pack->data = data;
                 pack->count = count;
                 producePack(pack);
                 //re-initialize data for next pack
-                data = new Read*[compar::MAX_READS_IN_PACK];
-                std::memset(data, 0, sizeof(Read*) * compar::MAX_READS_IN_PACK);
+                data = new Read*[COMMONCONST::MAX_READS_IN_PACK];
+                std::memset(data, 0, sizeof(Read*) * COMMONCONST::MAX_READS_IN_PACK);
                 // if the consumer is far behind this producer, sleep and wait to limit memory usage
-                while(mRepo.writePos - mRepo.readPos > compar::MAX_PACKS_IN_MEMORY){
+                while(mRepo.writePos - mRepo.readPos > COMMONCONST::MAX_PACKS_IN_MEMORY){
                     ++slept;
                     usleep(100);
                 }
                 readNum += count;
                 // if the writer threads are far behind this producer, sleep and wait
-                if(readNum % (compar::MAX_READS_IN_PACK * compar::MAX_PACKS_IN_MEMORY) == 0 && mLeftWriter){
-                    while(mLeftWriter->bufferLength() > compar::MAX_PACKS_IN_MEMORY){
+                if(readNum % (COMMONCONST::MAX_READS_IN_PACK * COMMONCONST::MAX_PACKS_IN_MEMORY) == 0 && mLeftWriter){
+                    while(mLeftWriter->bufferLength() > COMMONCONST::MAX_PACKS_IN_MEMORY){
                         ++slept;
                         usleep(100);
                     }
@@ -196,10 +196,10 @@ namespace fqlib{
         }
         data = mRepo.packBuffer[mRepo.readPos];
         ++mRepo.readPos;
-        if(mRepo.readPos == compar::MAX_PACKS_IN_READPACKREPO){
+        if(mRepo.readPos == COMMONCONST::MAX_PACKS_IN_READPACKREPO){
             processSingleEnd(data, config);
-            mRepo.readPos %= mRepo.readPos % compar::MAX_PACKS_IN_READPACKREPO;
-            mRepo.writePos %= mRepo.writePos % compar::MAX_PACKS_IN_READPACKREPO;
+            mRepo.readPos %= mRepo.readPos % COMMONCONST::MAX_PACKS_IN_READPACKREPO;
+            mRepo.writePos %= mRepo.writePos % COMMONCONST::MAX_PACKS_IN_READPACKREPO;
             mInputMtx.unlock();
         }else{
             mInputMtx.unlock();
@@ -367,7 +367,7 @@ namespace fqlib{
             int result = mFilter->passFilter(r1);
             config->addFilterResult(result);
             // stats the read after filtering
-            if(r1 != NULL && result == compar::PASS_FILTER){
+            if(r1 != NULL && result == COMMONCONST::PASS_FILTER){
                 outstr += r1->toString();
                 config->getPostStats1()->statRead(r1);
                 ++readPassed;

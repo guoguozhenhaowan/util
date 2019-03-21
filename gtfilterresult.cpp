@@ -16,8 +16,8 @@ TEST(FilterResult, Test){
     ser.addAdapterTrimmed("ATCGATA");
     ser.addCorrection('c', 'a');
     ser.addCorrection('t', 'c');
-    ser.addFilterResult(compar::FAIL_OVERLAP);
-    ser.addFilterResult(compar::PASS_FILTER);
+    ser.addFilterResult(COMMONCONST::FAIL_OVERLAP);
+    ser.addFilterResult(COMMONCONST::PASS_FILTER);
     ser.incCorrectedReads(10);
     std::ofstream fwse("./se.json");
     ser.reportAdaptersJsonSummary(fwse, "", "ATCCAT");
@@ -31,8 +31,8 @@ TEST(FilterResult, Test){
     per.addAdapterTrimmed("ATCGATA", "CCCCCC");
     per.addCorrection('c', 'a');
     per.addCorrection('t', 'c');
-    per.addFilterResult(compar::FAIL_OVERLAP);
-    per.addFilterResult(compar::PASS_FILTER);
+    per.addFilterResult(COMMONCONST::FAIL_OVERLAP);
+    per.addFilterResult(COMMONCONST::PASS_FILTER);
     per.incCorrectedReads(10);
     std::ofstream fwpe("./pe.json");
     per.reportAdaptersJsonSummary(fwpe, "", "ATCCAT", "TTCAT");

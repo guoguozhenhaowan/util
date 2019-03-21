@@ -22,7 +22,7 @@ namespace fqlib{
             bool mPaired;                                            ///< pairend filter results if true, else single end results
             size_t mCorrectedReads;                                  ///< number of reads got bases corrected
             size_t mCorrectedBases;                                  ///< number of bases got corrected
-            size_t mFilterReadStats[compar::FILTER_RESULT_TYPES];    ///< reads filter status accumulation array
+            size_t mFilterReadStats[COMMONCONST::FILTER_RESULT_TYPES];    ///< reads filter status accumulation array
             size_t mTrimmedAdapterReads;                             ///< number of reads got adapter trimmed
             size_t mTrimmedAdapterBases;                             ///< number of bases got trimmed when do adapter trimming
             std::map<std::string, size_t> mAdapter1Count;            ///< read1 adapter trimmed count map

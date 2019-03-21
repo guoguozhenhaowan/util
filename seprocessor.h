@@ -60,7 +60,7 @@ namespace fqlib{
             bool processSingleEnd(ReadPack* pack, ThreadConfig* config);
             
             /** initialize a ReadPackRepository object\n
-             * make room for mRepo.packBuffer to store at most compar::MAX_PACKS_IN_READPACKREPO packs in memory\n
+             * make room for mRepo.packBuffer to store at most COMMONCONST::MAX_PACKS_IN_READPACKREPO packs in memory\n
              * and initialize mRepo.writePos = mRepo.readPos = 0;
              */
             void initReadPackRepository();
@@ -83,9 +83,9 @@ namespace fqlib{
             /** a task(running asynchronously) to read fastq\n
              * fill a ReadPack and store the ReadPack into ReadPackRepository\n
              * continously till eof reached, but will pause at sometimes:\n
-             * 1)mRepo.writePos - mRepo.readPos > compar::MAX_PACKS_IN_MEMORY)
-             * 2)readNum % (compar::MAX_READS_IN_PACK * compar::MAX_PACKS_IN_MEMORY) == 0 && mLeftWriter)\n
-             * && mLeftWriter->bufferLength() > compar::MAX_PACKS_IN_MEMORY
+             * 1)mRepo.writePos - mRepo.readPos > COMMONCONST::MAX_PACKS_IN_MEMORY)
+             * 2)readNum % (COMMONCONST::MAX_READS_IN_PACK * COMMONCONST::MAX_PACKS_IN_MEMORY) == 0 && mLeftWriter)\n
+             * && mLeftWriter->bufferLength() > COMMONCONST::MAX_PACKS_IN_MEMORY
              */ 
             void producerTask();
             

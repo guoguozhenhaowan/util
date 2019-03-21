@@ -9,10 +9,10 @@ namespace fqlib{
         mInputCompleted = false;
         mFilename = filename;
     
-        mRingBuffer = new char*[compar::MAX_PACKS_IN_READPACKREPO];
-        std::memset(mRingBuffer, 0, sizeof(char*) * compar::MAX_PACKS_IN_READPACKREPO);
-        mRingBufferSizes = new size_t[compar::MAX_PACKS_IN_READPACKREPO];
-        std::memset(mRingBufferSizes, 0, sizeof(size_t) * compar::MAX_PACKS_IN_READPACKREPO);
+        mRingBuffer = new char*[COMMONCONST::MAX_PACKS_IN_READPACKREPO];
+        std::memset(mRingBuffer, 0, sizeof(char*) * COMMONCONST::MAX_PACKS_IN_READPACKREPO);
+        mRingBufferSizes = new size_t[COMMONCONST::MAX_PACKS_IN_READPACKREPO];
+        std::memset(mRingBufferSizes, 0, sizeof(size_t) * COMMONCONST::MAX_PACKS_IN_READPACKREPO);
         iniWriter(mFilename);
     }
     
@@ -41,12 +41,12 @@ namespace fqlib{
             mRingBuffer[mOutputCounter] = NULL;
             ++mOutputCounter;
         }
-        mOutputCounter %= compar::MAX_PACKS_IN_READPACKREPO;
-        mInputCounter %= compar::MAX_PACKS_IN_READPACKREPO;
+        mOutputCounter %= COMMONCONST::MAX_PACKS_IN_READPACKREPO;
+        mInputCounter %= COMMONCONST::MAX_PACKS_IN_READPACKREPO;
     }
     
     void WriterThread::input(char* cstr, size_t size){
-        if(mInputCounter < compar::MAX_PACKS_IN_READPACKREPO){ 
+        if(mInputCounter < COMMONCONST::MAX_PACKS_IN_READPACKREPO){ 
             mRingBuffer[mInputCounter] = cstr;
             mRingBufferSizes[mInputCounter] = size;
             ++mInputCounter;

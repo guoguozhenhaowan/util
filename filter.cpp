@@ -3,7 +3,7 @@
 namespace fqlib{
     int Filter::passFilter(Read* r){
         if(r == NULL || r->length() == 0){
-            return compar::FAIL_LENGTH;
+            return COMMONCONST::FAIL_LENGTH;
         }
     
         int rlen = r->length();
@@ -23,27 +23,27 @@ namespace fqlib{
             }
         }
         if(mOptions->qualFilter.enabled && lowQualNum > mOptions->qualFilter.lowQualityBaseLimit){
-            return compar::FAIL_QUALITY;
+            return COMMONCONST::FAIL_QUALITY;
         }
 
         if(mOptions->qualFilter.enabled && nBaseNum > mOptions->qualFilter.nBaseLimit){
-            return compar::FAIL_N_BASE;
+            return COMMONCONST::FAIL_N_BASE;
         }
 
         if(mOptions->lengthFilter.enabled){
             if(rlen < mOptions->lengthFilter.minReadLength){
-                return compar::FAIL_LENGTH;
+                return COMMONCONST::FAIL_LENGTH;
             }
             if(mOptions->lengthFilter.maxReadLength > 0 && rlen > mOptions->lengthFilter.maxReadLength){
-                return compar::FAIL_TOO_LONG;
+                return COMMONCONST::FAIL_TOO_LONG;
             }
         }
 
         if(mOptions->complexityFilter.enabled && !passLowComplexityFliter(r)){
-            return compar::FAIL_COMPLEXITY;
+            return COMMONCONST::FAIL_COMPLEXITY;
         }
     
-        return compar::PASS_FILTER;
+        return COMMONCONST::PASS_FILTER;
     }
     
     bool Filter::passLowComplexityFliter(Read* r){

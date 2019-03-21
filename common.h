@@ -3,7 +3,7 @@
 
 #pragma pack()
 
-namespace compar{
+namespace COMMONCONST{
     static const int MAX_PACKS_IN_READPACKREPO  = 10000000; ///< max number of ReadPacks a ReadPackRepository can hold
     static const int MAX_READS_IN_PACK = 1000;              ///< max number of reads a ReadPack can hold
     static const int MAX_PACKS_IN_MEMORY = 500;             ///< max number of ReadPacks in memory allowed

@@ -22,6 +22,7 @@
 #include "duplicate.h"
 #include "stats.h"
 #include "filterresult.h"
+#include "common.h"
 
 namespace fqlib{
     /** struct to store pointers of ReadPair */
@@ -53,12 +54,12 @@ namespace fqlib{
              */
             bool process();
 
-        private:
+        //private:
             bool processPairEnd(ReadPairPack* pack, ThreadConfig* config);
             bool processRead(Read* r, ReadPair* originalRead, bool reversed);
             
             /** initialize ReadPairPackRepository\n
-             * allocate memory to store at most compar::MAX_PACKS_IN_READPACKREPO ReadPairPack pointers
+             * allocate memory to store at most COMMONCONST::MAX_PACKS_IN_READPACKREPO ReadPairPack pointers
              * set readPos and writePos of ReadPairPackRepository to be zero
              */
             void initReadPairPackRepository();
