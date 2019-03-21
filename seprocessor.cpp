@@ -49,14 +49,22 @@ namespace fqlib{
         }
     }
 
-    void SingleEndProcessor::initPackRepository(){
-        mRepo.packBuffer = new ReadPack*[compar::PACK_NUM_LIMIT];
-        std::memset(mRepo.packBuffer, 0, sizeof(ReadPack*) * compar::PACK_NUM_LIMIT);
+    void SingleEndProcessor::initReadPackRepository(){
+        mRepo.packBuffer = new ReadPack*[compar::MAX_PACKS_IN_READPACKREPO];
+        std::memset(mRepo.packBuffer, 0, sizeof(ReadPack*) * compar::MAX_PACKS_IN_READPACKREPO);
         mRepo.writePos = 0;
         mRepo.readPos = 0;
     }
 
+    void SingleEndProcessor::destroyReadPackRepository(){
+        delete[] mRepo.packBuffer;
+        mrepo.packBuffer = NULL;
+    }
+
     void SingleEndProcessor::producePack(ReadPack* pack){
+        while(mRepo.writePos >= < compar::MAX_PACKS_IN_READPACKREPO){
+            usleep(60)
+        }
         mRepo.packBuffer[mRepo.writePos] = pack;
         ++mRepo.writePos;
     }
@@ -69,8 +77,8 @@ namespace fqlib{
         int slept = 0;
         long readNum = 0;  // total number of reads have been loaded into memory and put into mReop
         bool splitSizeReEvaluated = false;
-        Read** data = new Read*[compar::PACK_SIZE];
-        std::memset(data, 0, sizeof(Read*) * compar::PACK_SIZE);
+        Read** data = new Read*[compar::MAX_READS_IN_PACK];
+        std::memset(data, 0, sizeof(Read*) * compar::MAX_READS_IN_PACK);
         FqReader reader(mOptions->in1, true, mOptions->phred64);
         int count = 0; // number of reads have been loaded into memory and put into data but not mReop 
         bool needToBreak = false;
@@ -102,23 +110,23 @@ namespace fqlib{
                 util::loginfo(msg);
             }
             // the pack is full or first N reads needed have got
-            if(count == compar::PACK_SIZE || needToBreak){
+            if(count == compar::MAX_READS_IN_PACK || needToBreak){
                 ReadPack* pack = new ReadPack;
                 pack->data = data;
                 pack->count = count;
                 producePack(pack);
                 //re-initialize data for next pack
-                data = new Read*[compar::PACK_SIZE];
-                std::memset(data, 0, sizeof(Read*) * compar::PACK_SIZE);
+                data = new Read*[compar::MAX_READS_IN_PACK];
+                std::memset(data, 0, sizeof(Read*) * compar::MAX_READS_IN_PACK);
                 // if the consumer is far behind this producer, sleep and wait to limit memory usage
-                while(mRepo.writePos - mRepo.readPos > compar::PACK_IN_MEM_LIMIT){
+                while(mRepo.writePos - mRepo.readPos > compar::MAX_PACKS_IN_MEMORY){
                     ++slept;
                     usleep(100);
                 }
                 readNum += count;
                 // if the writer threads are far behind this producer, sleep and wait
-                if(readNum % (compar::PACK_SIZE * compar::PACK_IN_MEM_LIMIT) == 0 && mLeftWriter){
-                    while(mLeftWriter->bufferLength() > compar::PACK_IN_MEM_LIMIT){
+                if(readNum % (compar::MAX_READS_IN_PACK * compar::MAX_PACKS_IN_MEMORY) == 0 && mLeftWriter){
+                    while(mLeftWriter->bufferLength() > compar::MAX_PACKS_IN_MEMORY){
                         ++slept;
                         usleep(100);
                     }
@@ -157,22 +165,18 @@ namespace fqlib{
                 }
                 break;
             }
-            if(mProduceFinished){
-                if(mOptions->verbose){
-                    std::string msg = "thread " + std::to_string(config->getThreadId() + 1) + " is processing the " +
-                        std::string(mRepo.readPos) + "/" + std::to_string(mRepo.writePos) + " pack";
-                    util::loginfo(msg);
-                }
-                consumePack(config);
+            if(mProduceFinished && mOptions->verbose){
+                std::string msg = "thread " + std::to_string(config->getThreadId() + 1) + " is processing the " +
+                                   std::string(mRepo.readPos) + "/" + std::to_string(mRepo.writePos) + " pack";
+                util::loginfo(msg);
             }
+            consumePack(config);
         }
-
         if(mFinishedThreads == mOptions->thread){
             if(mLeftWriter){
                 mLeftWriter->setInputCompleted();
             }
         }
-
         if(mOptions->verbose){
             std::string msg = "thread " + std::to_string(config->getThreadId() + 1) + 
                 " finished";
@@ -192,8 +196,15 @@ namespace fqlib{
         }
         data = mRepo.packBuffer[mRepo.readPos];
         ++mRepo.readPos;
-        mInputMtx.unlock();
-        processSingleEnd(data, config);
+        if(mRepo.readPos == compar::MAX_PACKS_IN_READPACKREPO){
+            processSingleEnd(data, config);
+            mRepo.readPos %= mRepo.readPos % compar::MAX_PACKS_IN_READPACKREPO;
+            mRepo.writePos %= mRepo.writePos % compar::MAX_PACKS_IN_READPACKREPO;
+            mInputMtx.unlock();
+        }else{
+            mInputMtx.unlock();
+            processSingleEnd(data, config);
+        }
     }
 
 
@@ -202,7 +213,7 @@ namespace fqlib{
             initOutput();
         }
 
-        initPackRepository();
+        initReadPackRepository();
         std::thread producer(std::bind(&SingleEndProcessor::producerTask, this));
 
         int cycle = 151;
@@ -299,8 +310,9 @@ namespace fqlib{
 
         if(leftWriterThread)
             delete leftWriterThread;
-            if(!mOptions->split.enabled)
-            closeOutput();
+            if(!mOptions->split.enabled){
+                closeOutput();
+            }
 
         return true;
     }
@@ -395,5 +407,20 @@ namespace fqlib{
         delete pack->data;
         delete pack;
         return true;
+    }
+
+    void SingleEndProcessor::writeTask(WriterThread* config){
+        while(true){
+            if(config->isCompleted){
+                config->output();
+                break;
+            }
+            config->output();
+        }
+
+        if(mOptions->verbose){
+            std::string msg = config->getFilename() + " writer finished";
+            util::loginfo(msg);
+        }
     }
 }

@@ -4,20 +4,9 @@
 #pragma pack()
 
 namespace compar{
-    // the limit of the queue to store the PACK_SIZE
-    // // error may happen if it generates more packs than this number
-    static const int PACK_NUM_LIMIT  = 10000000;
-
-    // how many reads one pack has
-    static const int PACK_SIZE = 1000;
-
-    // if one pack is produced, but not consumed, it will be kept in the memory
-    // this number limit the number of packs in memory
-    // if the number of in memory packs is full, the producer thread should sleep
-    static const int PACK_IN_MEM_LIMIT = 500;
-
-    // if read number is more than this, warn it
-    static const int WARN_STANDALONE_READ_LIMIT = 10000;
+    static const int MAX_PACKS_IN_READPACKREPO  = 10000000; ///< max number of ReadPacks a ReadPackRepository can hold
+    static const int MAX_READS_IN_PACK = 1000;              ///< max number of reads a ReadPack can hold
+    static const int MAX_PACKS_IN_MEMORY = 500;             ///< max number of ReadPacks in memory allowed
 
     // different filtering results, bigger number means worse
     // if r1 and r2 are both failed, then the bigger one of the two results will be recorded
