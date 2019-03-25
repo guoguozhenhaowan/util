@@ -1,6 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#ifdef WINDOWS
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <string>
 #include <cerrno>
 #include <cstdio>
@@ -13,6 +19,7 @@
 #include <iostream>
 #include <algorithm>
 #include <functional>
+#include <dirent.h>
 #include <sys/stat.h>
 
 /** utility to operate on strings and directories */
@@ -111,7 +118,7 @@ namespace util{
      * @param des string to be used to replaced with pat
      * @return a string with each pat replaced by des
      */
-    inline std::string replace(const std::string&str, const std::string& pat, const std::string& des){
+    inline std::string replace(const std::string& str, const std::string& pat, const std::string& des){
         std::string ret;
         std::string::size_type las = 0, cur = 0;
         while((cur = str.find(pat, cur)) != std::string::npos){
@@ -196,6 +203,37 @@ namespace util{
         }else{
             return fpath.substr(0, pos + 1);
         }
+    }
+
+    /** get absolute path of a path
+     * @param path string of path
+     * @return absolute path string
+     */
+    inline std::string abspath(const std::string& path){
+        std::string newPath = util::strip(path);
+        if(newPath.length() == 0){
+            return "";
+        }
+        char cpath[FILENAME_MAX];
+#ifdef _WIN32
+        _realpath(newPath.c_str(), cpath);
+#else
+        realpath(newPath.c_str(), cpath);
+#endif
+        return std::string(cpath);
+    }
+
+    /** get current working directory
+     * @return current working directory
+     */
+    inline std::string cwd(void){
+        char cpath[FILENAME_MAX];
+#ifdef _WIN32
+        _getcwd(cpath, FILENAME_MAX);
+#else
+        getcwd(cpath, FILENAME_MAX);
+#endif
+        return std::string(cpath);
     }
 
     /** join dirname and basename into a path
@@ -398,11 +436,11 @@ namespace util{
         }
     }
 
-    extern std::mutex logmtx; ///< global loginfo function lock
     /** write a log message to std::cerr in a thread-safe way
+     * @param logmtx reference to a std::mutex object
      * @param s log message 
      */
-    inline void loginfo(const std::string& s){
+    inline void loginfo(const std::string& s, std::mutex& logmtx){
         std::lock_guard<std::mutex> l(logmtx);
         time_t tt = time(NULL);
         tm* t = std::localtime(&tt);
@@ -443,6 +481,22 @@ namespace util{
         int maxlen = std::min(v1.size(), v2.size());
         for(int i = 0; i < maxlen; ++i){
             vp.push_back(std::make_pair(v1[i], v2[i]));
+        }
+    }
+
+    /** list contents in an directory
+     * @param path string of path
+     * @param vname vector to store contents under path
+     */
+    inline void list_dir(const std::string& path, std::vector<std::string>& vname){
+        std::string dirpath = util::replace(path, "~", std::string(std::getenv("HOME")) + "/");
+        DIR *dir;
+        struct dirent *ent;
+        if((dir = opendir(dirpath.c_str())) != NULL){
+            while((ent = readdir(dir)) != NULL){
+                vname.push_back(std::string(ent->d_name));
+            }
+            closedir(dir);
         }
     }
 }

@@ -34,6 +34,19 @@ namespace htmlutil{
         }
         return std::to_string(num) + " " + unit[order];
     }
+
+    /** get percents number of nuerator/denominator
+     * @param numerator numerator
+     * @param denominator denominator
+     * @return percents number string
+     */
+    template<typename T>
+    std::string getPercentsStr(T numerator, T denominator){
+        if(denominator == 0){
+            return "0.0";
+        }
+        return std::to_string((double)numerator * 100.0 / (double) denominator);
+    }
 }
 
 #endif

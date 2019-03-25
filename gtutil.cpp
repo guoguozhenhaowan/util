@@ -149,6 +149,29 @@ TEST(util, dirname){
     EXPECT_EQ(util::dirname(s7), "./");
 }
 
+// test util::abspath
+TEST(util, abspath){
+    std::string s1("fuck");
+    std::string s2(".///fuck");
+    std::string s3("./");
+    std::string s4("/fuck//shit/hello///");
+    std::string s5("/fuck/shit/kao");
+    std::string s6("/fuck///");
+    std::string s7(" ");
+
+    EXPECT_EQ(util::abspath(s1), "/Users/wood/GitRepo/util/" + s1);
+    EXPECT_EQ(util::abspath(s2), "/Users/wood/GitRepo/util/fuck");
+    EXPECT_EQ(util::abspath(s3), "/Users/wood/GitRepo/util");
+    EXPECT_EQ(util::abspath(s4), "/fuck");
+    EXPECT_EQ(util::abspath(s5), "/fuck");
+    EXPECT_EQ(util::abspath(s7), "");
+}
+
+// test util::cwd
+TEST(utik, cwd){
+    EXPECT_EQ(util::cwd(), "/Users/wood/GitRepo/util");
+}
+
 // test util::joinpath
 TEST(util, joinpath){
     EXPECT_EQ(util::joinpath("/fuck", "hello"), "/fuck/hello");
@@ -239,7 +262,8 @@ TEST(util, complement){
 
 // test util::loginfo
 TEST(util, loginfo){
-    util::loginfo("hello world!");
+    std::mutex logmtx;
+    util::loginfo("hello world!", logmtx);
 }
 
 int main(int argc, char** argv){
