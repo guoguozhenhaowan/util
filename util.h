@@ -437,8 +437,8 @@ namespace util{
     }
 
     /** write a log message to std::cerr in a thread-safe way
-     * @param logmtx reference to a std::mutex object
      * @param s log message 
+     * @param logmtx reference to a std::mutex object
      */
     inline void loginfo(const std::string& s, std::mutex& logmtx){
         std::lock_guard<std::mutex> l(logmtx);
