@@ -23,41 +23,22 @@ class SmartFormatter(argparse.HelpFormatter):
             return text[2:].splitlines()  
         return argparse.HelpFormatter._split_lines(self, text, width)
 
-def walkOneDir(workDir, fileExt):
-    """Generates a list of all the files under workDir with fileExt as extention"""
+def walkOneDir(workDir, fileExtPat):
+    """Generates a list of all the files under workDir with fileExtPat as extention"""
     fileList = []
-    filePattern = "*" + '.' + fileExt
     for pathName, dirName, fileNameList in os.walk(workDir):
         for fileName in fileNameList:
-            if fnmatch.fnmatch(fileName, filePattern):
+            if re.match(fileExtPat, fileName):
                 fileList.append(os.path.abspath(os.path.join(pathName, fileName)))
     return fileList
 
-def paraWalkDirBad(DirList, fileExt):
-    """Walk directories to generate list of files parallelly"""
-    procToRun = []
-    pipeList = []
-    fileList = []
-    for subDir in DirList:
-        recvEnd, sendEnd = multiprocessing.Pipe(False)
-        procToRun.append(multiprocessing.Process(target=walkOneDir, args=(subDir, fileExt, sendEnd)))
-        pipeList.append(recvEnd)
-    for proc in procToRun:
-        proc.start()
-    for proc in procToRun:
-        proc.join()
-    for returnList in pipeList:
-        fileList += returnList.recv()
-    fileList = sorted(set(fileList))
-    return fileList
-
-def paraWalkDir(dirList, fileExt, threadNo):
+def paraWalkDir(dirList, fileExtPat, threadNo):
     """Walk directories to generate list of files parallelly"""
     pool = multiprocessing.Pool(processes = threadNo)
     pipeList = []
     fileList = []
     for subDir in dirList:
-        pipeList.append(pool.apply_async(walkOneDir, (subDir, fileExt)))
+        pipeList.append(pool.apply_async(walkOneDir, (subDir, fileExtPat)))
     pool.close()
     pool.join()
     for returnList in pipeList:
@@ -186,29 +167,29 @@ def parseSpList(sampleList):
             sfdic[SampleName].add(FlowCell)
     return sfdic
 
-def regularyUpdate(libPath, blackList, dirLog, timeInterval, fileExt, threadNo, dicFile):
+def regularyUpdate(libPath, blackList, dirLog, timeInterval, fileExtPat, threadNo, dicFile):
     """Regulary update database every timeInterval seconds"""
     while True:
         time.sleep(3600)
-        pathList = getModFileDir(libPath, blackList, timeInterval)
+        pathList = getModFileDir(libPath, blackList, timeInterval, fileExtPat)
         if len(pathList) > 0:
             updateLog = "{0}.mup.log".format(dicFile)
             fw = open(updateLog, 'w')
             fw.write("paths may needed to be updated @ {0}:\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             fw.write("{0}\n".format("\n".join(pathList)))
             fw.close()
-            fileList = paraWalkDir(pathList, fileExt, threadNo)
+            fileList = paraWalkDir(pathList, fileExtPat, threadNo)
             updateDic(fileList, dicFile)
     return None
 
-def forceUpdate(libPath, blackList, fileExt, threadNo, dicFile):
+def forceUpdate(libPath, blackList, fileExtPat, threadNo, dicFile):
     """Force update specific lirary path"""
-    dir3List = iniFileDir(libPath, blackList)
-    fileList = paraWalkDir(dir3List, fileExt, threadNo)
+    dir3List = iniFileDir(libPath, blackList, fileExtPat)
+    fileList = paraWalkDir(dir3List, fileExtPat, threadNo)
     updateDic(fileList, dicFile)
     return None
 
-def iniFileDir(fqPath, blackList):
+def iniFileDir(fqPath, blackList, fileExtPat):
     """ get directory path up to level 3 depth"""
     dirSet = set()
     dir1list = []
@@ -223,7 +204,7 @@ def iniFileDir(fqPath, blackList):
             pdir2 = os.path.join(pdir, dir2)
             if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
                 dir2list.append(pdir2)
-            if (not os.path.isdir(pdir2)) and pdir2.endswith("clean.fastq.gz"):
+            if (not os.path.isdir(pdir2)) and re.match(fileExtPat, pdir2):
                 dirSet.add(pdir)
     
     dir3list = []
@@ -232,11 +213,11 @@ def iniFileDir(fqPath, blackList):
             pdir3 = os.path.join(pdir, dir3)
             if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK):
                 dirSet.add(pdir3)
-            if (not os.path.isdir(pdir3)) and pdir3.endswith("clean.fastq.gz"):
+            if (not os.path.isdir(pdir3)) and re.match(fileExtPat, pdir3):
                 dirSet.add(pdir)
     return list(dirSet)
 
-def getModFileDir(fqPath, blackList, timeInterval):
+def getModFileDir(fqPath, blackList, timeInterval, fileExtPat):
     """ get directory path up to level 3 depth"""
     dirSet = set()
     dir1list = []
@@ -251,7 +232,7 @@ def getModFileDir(fqPath, blackList, timeInterval):
             pdir2 = os.path.join(pdir, dir2)
             if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
                 dir2list.append(pdir2)
-            if (not os.path.isdir(pdir2)) and pdir2.endswith("clean.fastq.gz") and abs(time.time() - os.path.getmtime(pdir2)) < timeInterval:
+            if (not os.path.isdir(pdir2)) and re.match(fileExtPat, pdir2) and abs(time.time() - os.path.getmtime(pdir2)) < timeInterval:
                 dirSet.add(pdir)
     
     dir3list = []
@@ -260,7 +241,7 @@ def getModFileDir(fqPath, blackList, timeInterval):
             pdir3 = os.path.join(pdir, dir3)
             if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK) and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
                 dirSet.add(pdir3)
-            if (not os.path.isdir(pdir3)) and pdir3.endswith("clean.fastq.gz") and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
+            if (not os.path.isdir(pdir3)) and re.match(fileExtPat, pdir3) and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
                 dirSet.add(pdir)
     return list(dirSet)
 
@@ -270,7 +251,7 @@ def main():
     dicFile = "/share/work1/wulj/database/queryLibDB/queryLibDB.json"
     blackList = ["/share/seq_dir/ngs/Runs", "/share/seq_dir/ngs/qc"]
 
-    fileExt = "clean.fastq.gz"
+    fileExtPat = re.compile(".*R[12]+(.clean)?.fastq.gz$")
     threadNo = 10
     timeInterval = 36000
     userName = getpass.getuser()
@@ -344,11 +325,11 @@ def main():
             sys.exit(1)
         if args.thread != None:
             threadNo = int(args.thread)
-        dirList = iniFileDir(fqPath, blackList)
+        dirList = iniFileDir(fqPath, blackList, fileExtPat)
         fw = open("{0}.dir.log".format(dicFile), 'w')
         fw.write("{0}\n".format("\n".join(dirList)))
         fw.close()
-        fileList = paraWalkDir(dirList, fileExt, threadNo)
+        fileList = paraWalkDir(dirList, fileExtPat, threadNo)
         makeFileDic(fileList, dicFile)
     elif jobType == "u":
         if args.fqpath != None:
@@ -368,9 +349,9 @@ def main():
             sys.exit(1)
         dirLog = "{0}.dir.log".format(dicFile)
         if args.force:
-            forceUpdate(fqPath, blackList, fileExt, threadNo, dicFile)
+            forceUpdate(fqPath, blackList, fileExtPat, threadNo, dicFile)
         else:
-            regularyUpdate(fqPath, blackList, dirLog, timeInterval, fileExt, threadNo, dicFile)
+            regularyUpdate(fqPath, blackList, dirLog, timeInterval, fileExtPat, threadNo, dicFile)
     else:
         if args.database != None:
             dicFile = os.path.abspath(args.database)
