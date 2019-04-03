@@ -310,6 +310,7 @@ namespace fqlib{
         UMIOptions umi;                                    ///< UMIOptions object 
         PolyGTrimmerOptions polyGTrim;                     ///< PolyGTrimmerOptions object
         PolyXTrimmerOptions polyXTrim;                     ///< PolyXTrimmerOptions object
+        std::mutex logmtx;                                 ///< mutex for logging
         // fuctions of Options
         
         /** Construct a Options object */
