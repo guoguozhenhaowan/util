@@ -266,6 +266,13 @@ TEST(util, loginfo){
     util::loginfo("hello world!", logmtx);
 }
 
+// test util::in_vector
+TEST(util, in_vector){
+    std::vector<int> v = {1, 2, 3, 0};
+    EXPECT_FALSE(util::in_vector(v, 4));
+    EXPECT_TRUE(util::in_vector(v, 0));
+}
+
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

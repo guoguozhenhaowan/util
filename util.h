@@ -417,6 +417,20 @@ namespace util{
         return c;
     }
 
+    /** convert a quality uint8_t to phred33 score string
+     * @param a pointer to uint8_t likely array
+     * @param l length of array
+     * @return string representation of phred33 based score
+     */
+    template<typename T>
+    inline std::string qual2str(T *a, size_t l){
+        std::string qstr(l, '\0');
+        for(size_t i = 0; i < l; ++i){
+            qstr[i] = (char)(33 + a[i]);
+        }
+        return qstr;
+    }
+
     /** get complement base of a nucleotide base
      * @param base nucleotide base character
      * @return the uppercased complementary nucleotide base
@@ -458,6 +472,15 @@ namespace util{
             util::strip(line);
             ret.push_back(line);
         }
+    }
+    /** test whether an element is in a vector
+     * @param v vector
+     * @param e element
+     * @return true if e in v
+     */
+    template<typename T>
+    inline bool in_vector(const std::vector<T>& v, const T& e){
+        return std::find(v.cbegin(), v.cend(), e) != v.cend();
     }
 
     /** convert a vector of strings to integers
