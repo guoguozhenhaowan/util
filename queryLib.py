@@ -193,6 +193,8 @@ def iniFileDir(fqPath, blackList, fileExtPat):
     """ get directory path up to level 3 depth"""
     dirSet = set()
     dir1list = []
+    if not os.access(fqPath, os.F_OK):
+        return dirSet
     for dirName in os.listdir(fqPath):
         pdir = os.path.abspath(os.path.join(fqPath, dirName))
         if (not pdir in blackList) and os.path.isdir(pdir) and (not os.path.islink(pdir)) and os.access(pdir, os.R_OK):
@@ -200,6 +202,8 @@ def iniFileDir(fqPath, blackList, fileExtPat):
    
     dir2list = []
     for pdir in dir1list:
+        if not os.access(pdir, os.F_OK):
+            continue
         for dir2 in os.listdir(pdir):
             pdir2 = os.path.join(pdir, dir2)
             if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
@@ -209,6 +213,8 @@ def iniFileDir(fqPath, blackList, fileExtPat):
     
     dir3list = []
     for pdir in dir2list:
+        if not os.access(pdir, os.F_OK):
+            continue
         for dir3 in os.listdir(pdir):
             pdir3 = os.path.join(pdir, dir3)
             if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK):
@@ -221,6 +227,8 @@ def getModFileDir(fqPath, blackList, timeInterval, fileExtPat):
     """ get directory path up to level 3 depth"""
     dirSet = set()
     dir1list = []
+    if not os.access(fqPath, os.F_OK):
+        return dirSet
     for dirName in os.listdir(fqPath):
         pdir = os.path.abspath(os.path.join(fqPath, dirName))
         if (not pdir in blackList) and os.path.isdir(pdir) and (not os.path.islink(pdir)) and os.access(pdir, os.R_OK):
@@ -228,6 +236,8 @@ def getModFileDir(fqPath, blackList, timeInterval, fileExtPat):
    
     dir2list = []
     for pdir in dir1list:
+        if not os.access(pdir, os.F_OK):
+            continue
         for dir2 in os.listdir(pdir):
             pdir2 = os.path.join(pdir, dir2)
             if os.path.isdir(pdir2) and (not os.path.islink(pdir2)) and os.access(pdir2, os.R_OK):
@@ -237,6 +247,8 @@ def getModFileDir(fqPath, blackList, timeInterval, fileExtPat):
     
     dir3list = []
     for pdir in dir2list:
+        if not os.access(pdir, os.F_OK):
+            continue
         for dir3 in os.listdir(pdir):
             pdir3 = os.path.join(pdir, dir3)
             if os.path.isdir(pdir3) and (not os.path.islink(pdir3)) and os.access(pdir3, os.R_OK) and abs(time.time() - os.path.getmtime(pdir3)) < timeInterval:
