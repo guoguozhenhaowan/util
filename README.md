@@ -27,3 +27,7 @@ utilities
 |[jsonutil.h](./jsonutil.h)|json writting utilities
 |[util.h](./util.h)|useful functions
 |[flagdel.cpp](./flagdel.cpp)|unmask some flag in a bam
+|[filereader.h](./filereader.h)|general plain/gz format file reader
+|[filereader.cpp](./filereader.cpp)|implementation of some functions in [filereader.h](./filereader.h)
+|[filewriter.h](./filewriter.h)|general plain/gz format file writer
+|[filewriter.cpp](./filewriter.cpp)|implementation of some functions in [filewriter.h](./filewriter.h)
