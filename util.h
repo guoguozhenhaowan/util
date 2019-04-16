@@ -396,7 +396,7 @@ namespace util{
      */
     inline int hamming(const std::string& str1, const std::string& str2){
         int diff = std::abs((int)(str1.size() - str2.size()));
-        for(int i = 0; i < std::min(str1.size(), str2.size()); ++i){
+        for(size_t i = 0; i < std::min(str1.size(), str2.size()); ++i){
             diff += (str1[i] == str2[i] ? 0 : 1);
         }
         return diff;
@@ -521,6 +521,20 @@ namespace util{
             }
             closedir(dir);
         }
+    }
+
+    /** print an array to std::cout 
+     * @param a pointer to an array
+     * @param l length of the array
+     * @param n array name to show
+     */
+    template<typename T>
+    inline void show_array(const T* a, size_t l, const std::string& n){
+        std::cout << n << ":";
+        for(size_t i = 0; i < l; ++i){
+            std::cout << a[i] << " ";
+        }
+        std::cout << std::endl;
     }
 }
 
