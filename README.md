@@ -31,3 +31,4 @@ utilities
 |[filereader.cpp](./filereader.cpp)|implementation of some functions in [filereader.h](./filereader.h)
 |[filewriter.h](./filewriter.h)|general plain/gz format file writer
 |[filewriter.cpp](./filewriter.cpp)|implementation of some functions in [filewriter.h](./filewriter.h)
+|[getReadPairByFlag.cpp](./getReadPairByFlag.cpp)|get/filter readpair from bam alignment flag
