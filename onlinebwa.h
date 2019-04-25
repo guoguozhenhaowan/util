@@ -8,6 +8,7 @@
 #include <memory>
 #include <cstring>
 #include <sstream>
+#include <cassert>
 #include "util.h"
 #include "bwa/bwa.h"
 #include "bwa/bwt.h"
@@ -84,6 +85,104 @@ class OnlineBWA{
          * @param result alignment result vector
          */
         void alignSeq(const kseq_t* seq, std::vector<bam1_t*>& result);
+
+        /** construct index from a list of UnalignedSeq
+         * @param uv vector of UnalignedSeq
+         */
+        void constructIndex(const std::vector<UnalignedSeq>& uv);
+
+        /** load external bwt index
+         * @param file index file
+         */
+        void loadIndex(const std::string& file);
+
+        /** write index to file
+         * @param file output file of index
+         */
+        void writeIndex(const std::string& file);
+
+        /** set the gap open penalty
+         * @param gapOpenPenalty gap open penalty, default 6
+         */
+        inline void setGapOpenPenalty(int gapOpenPenalty){
+            assert(gapOpenPenalty > 0);
+            mMemOpt->o_del = mMemOpt->o_ins = gapOpenPenalty;
+        }
+
+        /** set the gap extension penalty
+         * @param gapExtPenalty gap extension penalty, default 1
+         */
+        inline void setGapExtendPenalty(int gapExtPenalty){
+            assert(gapExtPenalty > 0);
+            mMemOpt->e_del = mMemOpt->e_ins = gapExtPenalty;
+        }
+
+        /** set mismatch penalty
+         * @param mismatchPenaly mismatch penalty, default 4
+         */
+        inline void setMismatchPenalty(int mismatchPenaly){
+            assert(mismatchPenaly > 0);
+            mMemOpt->b = mismatchPenaly;
+            bwa_fill_scmat(mMemOpt->a, mMemOpt->b, mMemOpt->mat);
+        }
+
+        /** set the reseed trigger
+         * @param reseed look for internal seeds inside a seed longer than seedlength * reseed, default 1.5
+         */
+        inline void setReseedTriger(float reseed){
+            assert(reseed > 0);
+            mMemOpt->split_factor = reseed;
+        }
+
+        /** set SW alignment bandwidth
+         * @param width SW alignment bandwidth, default 100
+         */
+        inline void setBandWidth(int width){
+            assert(width > 0);
+            mMemOpt->w = w;
+        }
+
+        /** set the SW alignment off-diagonal X-dropoff
+         * @param dropOff off-diagonal X-dropoff, default 100
+         */
+        inline void setXDropoff(int dropOff){
+            assert(dropOff > 0);
+            mMemOpt->zdrop = dropOff;
+        }
+
+        /** set the 3' clipping penalty
+         * @param p3ClipPenalty penalty for 3'-end clipping, default 5
+         */
+        inline void set3PrimeClipPenalty(int p3ClipPenalty){
+            assert(p3ClipPenalty > 0);
+            mMemOpt->pen_clip3 = p3ClipPenalty;
+        }
+
+        /** set the 5' clipping penalty
+         * @param p5ClipPenalty penalty for 5'-end clipping, default 5
+         */
+        inline void set5PrimeClipPenalty(int p5ClipPenalty){
+            assert(p5ClipPenalty > 0);
+            mMemOpt->pen_clip5 = p5ClipPenalty;
+        }
+
+       /** set the match score, this should be set first as it will scale penalty options 
+        * @param matchScore score for a sequence match, which scales options -TdBOELU unless overridden
+        */
+        inline void setMatchScore(int matchScore){
+            assert(matchScore > 0);
+            mMemOpt->b *= matchScore;
+            mMemOpt->T *= matchScore;
+            mMemOpt->o_del *= matchScore;
+            mMemOpt->o_ins *= matchScore;
+            mMemOpt->e_del *= matchScore;
+            mMemOpt->e_ins *= matchScore;
+            mMemOpt->zdrop *= matchScore;
+            mMemOpt->pen_clip3 *= matchScore;
+            mMemOpt->pen_clip5 *= matchScore;
+            mMemOpt->pen_unpaired *= matchScore;
+            mMemOpt->a = matchScore;
+        }
 };
 
 #endif

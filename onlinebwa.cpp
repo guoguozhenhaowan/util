@@ -253,3 +253,77 @@ void OnlineBWA::alignSeq(const kseq_t* seq, std::vector<bam1_t*>& result){
         }
     }
 }
+
+void OnlineBWA::constructIndex(const std::vector<UnalignedSeq>& uv){
+    if(!uv.size()){
+        return;
+    }
+    for(auto& e: uv){
+        if(e.mName.empty() || e.mSeq.empty()){
+            util::error_exit("nama and sequence must all be unempty to construct a index");
+        }
+    }
+    if(mIndex){
+        bwa_idx_destroy(mIndex);
+        mIndex = 0;
+    }
+    // allocate memory for index
+    mIndex = (bwaidx_t*)std::calloc(1, sizeof(bwaidx_t));
+    // construct the forward-only pac
+    uint8_t* fwd_pac = makePac(uv, false);
+    // construct the forward-reverse pac
+    uint8_t* pac = makePac(uv, true);
+    size_t tlen = 0;
+    for(auto& e: uv){
+        tlen += e.mSeq.length();
+    }
+    // make the bwt
+    bwt_t* bwt = pac2bwt(pac, tlen * 2);
+    bwt_bwtupdate_core(bwt);
+    free(pac);
+    // construct sa from bwt and occ. add it to bwt struct
+    bwt_cal_sa(bwt, 32);
+    bwt_gen_cnt_table(bwt);
+    bntseq_t* bns = (bntseq_t*)std::calloc(1, sizeof(bntseq_t));
+    bns->l_pac = tlen;
+    bns->n_seqs = uv.size();
+    bns->seed = 11;
+    bns->n_holes = 0;
+    // make the anns
+    bns->anns = (bntann1_t*)std::calloc(uv.size(), sizeof(bntann1_t));
+    size_t offset = 0;
+    for(size_t k = 0; k < uv.size(); ++k){
+        addAnns(uv[k].mName, uv[k].mSeq, &bns->anns[k], offset);
+        offset += uv[k].mSeq.length();
+    }
+    // ambs is 'holes', like N bases
+    bns->ambs = 0;
+    // make the in-memory idx struct
+    mIndex->bwt = bwt;
+    mIndex->bns = bns;
+    mIndex->pac = fwd_pac;
+    return;
+}
+
+void OnlineBWA::loadIndex(const std::string& file){
+    bwaidx_t* newIndex = bwa_idx_load(file.c_str(), BWA_IDX_ALL);
+    if(!newIndex){
+        util::error_exit("error loading index");
+    }
+    if(newIndex){
+        bwa_idx_destroy(mIndex);
+    }
+    mIndex = newIndex;
+}
+
+void OnlineBWA::writeIndex(const std::string& file){
+    if(!mIndex){
+        return;
+    }
+    std::string bwt_file = file + ".bwt";
+    std::string sa_file = file + ".sa";
+    bwt_dump_bwt(bwt_file.c_str(), mIndex->bwt);
+    bwt_dump_sa(sa_file.c_str(), mIndex->bwt);
+    bns_dump(mIndex->bns, file.c_str());
+    writePacToFile(file);
+}
