@@ -32,3 +32,8 @@ utilities
 |[filewriter.h](./filewriter.h)|general plain/gz format file writer
 |[filewriter.cpp](./filewriter.cpp)|implementation of some functions in [filewriter.h](./filewriter.h)
 |[getReadPairByFlag.cpp](./getReadPairByFlag.cpp)|get/filter readpair from bam alignment flag
+|[cleanFaName.cpp](./cleanFaName.cpp)|clean fasta file names by remove all contens after the first blank space
+|[regionStepGCDepth.gcc](./regionStepGCDepth.gcc)|step-wise gc and depth table generator for bam alignment
+|[unalignedseq.h](./unalignedseq.h)|unaligned sequence class 
+|[onlinebwa.h](./onlinebwa.h)|online bwa mem
+|[onlinebwa.cpp](./onlinebwa.cpp)|some functions implementation of [onlinebwa.h](./onlinebwa.h)
