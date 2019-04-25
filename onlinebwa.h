@@ -31,7 +31,10 @@ class OnlineBWA{
         bool mCopyComment;  ///< copy fasta/q comment to SAM output if true
         bwaidx_t* mIndex;   ///< pointer to bwa index structure
         
+        /** OnlineBWA constructor */ 
         OnlineBWA();
+        
+        /** OnlineBWA destructor */
         ~OnlineBWA();
 
     public:
