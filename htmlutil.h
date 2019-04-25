@@ -20,6 +20,19 @@ namespace htmlutil{
         ofs << "<tr><td class='col1'>" + key + "</td><td class='col2'>" + ss.str() + "</td></tr>\n";
     }
 
+    /** get current system time
+     * @return current system time
+     */
+    inline std::string getCurrentSystemTime(){
+        time_t tt = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        struct tm* ptm = std::localtime(&tt);
+        char date[60] = {0};
+        std::sprintf(date, "%d-%02d-%02d %02d:%02d:%02d",
+                (int)ptm->tm_year + 1900,(int)ptm->tm_mon + 1,(int)ptm->tm_mday,
+                (int)ptm->tm_hour,(int)ptm->tm_min,(int)ptm->tm_sec);
+        return std::string(date);
+    }
+
     /** format a big number with KMGTP units
      * @param number a non-negative number to be formatted
      * @return formatted number string
