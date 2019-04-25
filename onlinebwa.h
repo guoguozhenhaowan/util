@@ -19,8 +19,10 @@
 #include "htslib/sam.h"
 #include "unalignedseq.h"
 
-int is_bwt(ubyte_t *T, int n);
-KSEQ_DECLARE(gzFile)
+extern "C"{
+    int is_bwt(ubyte_t *T, int n);
+    KSEQ_DECLARE(gzFile)
+}
 
 class OnlineBWA{
     public:
@@ -139,7 +141,7 @@ class OnlineBWA{
          */
         inline void setBandWidth(int width){
             assert(width > 0);
-            mMemOpt->w = w;
+            mMemOpt->w = width;
         }
 
         /** set the SW alignment off-diagonal X-dropoff
