@@ -16,12 +16,33 @@ OnlineBWA::~OnlineBWA(){
     }
 }
 
-std::string OnlineBWA::getSamHeader(const bntseq_t* bns){
+bam_hdr_t* OnlineBWA::getBamHeader(){
+    if(!mIndex){
+        return NULL;
+    }
+    bntseq_t* bns = mIndex->bns;
     std::stringstream ss;
     for(int i = 0; i < bns->n_seqs; ++i){
         ss << "@SQ\tSN:" << bns->anns[i].name << "\tLN:" << bns->anns[i].len << "\n";
     }
-    return ss.str();
+    kstring_t str;
+    bam_hdr_t *hhh;
+    str.l = str.m = 0; str.s = 0;
+    std::istringstream iss(ss.str());
+    std::string line;
+    while(std::getline(iss, line, '\n')){
+        if(line.length() == 0 || line.at(0) != '@'){
+            break;
+        }
+        kputsn(line.c_str(), line.length(), &str);
+        kputc('\n', &str);
+    }
+    if(str.l == 0){
+        kputsn("", 0, &str);
+    }
+    hhh = sam_hdr_parse(str.l, str.s);
+    hhh->l_text = str.l; hhh->text = str.s; // hhh->text needs to be freed
+    return hhh;
 }
 
 bwt_t* OnlineBWA::pac2bwt(const uint8_t* pac, int bwt_seq_lenr){
@@ -203,9 +224,9 @@ void OnlineBWA::alignSeq(const std::string& seq, const std::string& name, std::v
         if(a.is_rev){
             fseq = util::reverseComplete(seq);
         }
-        for(uint32_t i = 0; i < fseq.length(); ++i){
+        for(uint32_t j = 0; j < fseq.length(); ++j){
             uint8_t base = 15;
-            switch(fseq[i]){
+            switch(fseq[j]){
                 case 'A':
                     base = 1;
                     break;
@@ -221,19 +242,25 @@ void OnlineBWA::alignSeq(const std::string& seq, const std::string& name, std::v
                 default:
                     base = 15;
             }
-            mbases[i >> 1] &= ~(0xF << ((~i & 1) << 2));
-            mbases[i >> 1] |= base << ((~i & 1) << 2);
+            mbases[j >> 1] &= ~(0xF << ((~j & 1) << 2));
+            mbases[j >> 1] |= base << ((~j & 1) << 2);
         }
         uint8_t* quals = bam_get_qual(b);
         quals[0] = 0xff;
-        bam_aux_append(b, "NA", 'i', 4, (uint8_t*)ar.n);
-        bam_aux_append(b, "NM", 'i', 4, (uint8_t*)a.NM);
+        size_t arn = ar.n;
+        bam_aux_append(b, "NA", 'i', 4, (uint8_t*)(&arn));
+        uint32_t irec;
+        irec = a.NM;
+        bam_aux_append(b, "NM", 'i', 4, (uint8_t*)(&irec));
         if(a.XA){
             bam_aux_append(b, "XA", 'Z', std::strlen(a.XA), (uint8_t*)a.XA);
         }
-        bam_aux_append(b, "AS", 'i', 4, (uint8_t*)a.score);
+        irec = a.score;
+        bam_aux_append(b, "AS", 'i', 4, (uint8_t*)(&irec));
         result.push_back(b);
+        free(a.cigar);
     }
+    free(ar.a);
 }
 
 void OnlineBWA::alignSeq(const UnalignedSeq& us, std::vector<bam1_t*>& result){

@@ -456,7 +456,7 @@ namespace util{
      */
     inline std::string reverseComplete(const std::string& seq){
         std::string retSeq(seq.length(), '\0');
-        for(uint16_t i = retSeq.length() - 1; i >= 0; --i){
+        for(int32_t i = retSeq.length() - 1; i >= 0; --i){
             retSeq[i] = complement(seq[seq.length() - 1 - i]);
         }
         return retSeq;

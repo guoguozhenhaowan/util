@@ -17,6 +17,7 @@
 #include "bwa/bwamem.h"
 #include "bwa/bntseq.h"
 #include "htslib/sam.h"
+#include "htslib/kstring.h"
 #include "unalignedseq.h"
 
 extern "C"{
@@ -27,18 +28,17 @@ extern "C"{
 class OnlineBWA{
     public:
         mem_opt_t* mMemOpt; ///< pointer to memory options for bwa alignment
-        bool mCopyComment; ///< copy fasta/q comment to SAM output if true
-        bwaidx_t* mIndex; ///< pointer to bwa index structure
+        bool mCopyComment;  ///< copy fasta/q comment to SAM output if true
+        bwaidx_t* mIndex;   ///< pointer to bwa index structure
         
         OnlineBWA();
         ~OnlineBWA();
 
     public:
         /** convert a bns to string
-         * @param bns pointer to bntseq_t struct
-         * @return string representation of bns
+         * @return pointer to bam_hdr_t
          */
-        std::string getSamHeader(const bntseq_t* bns);
+        bam_hdr_t* getBamHeader();
         
         /** convert pac tos bwt_t
          * @param pac uint8_t array
