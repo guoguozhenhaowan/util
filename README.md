@@ -41,3 +41,4 @@ utilities
 |[splitBamByZF.cpp](./splitBamByZF.cpp)|split bam according to ZF flag to bam files
 |[parseclw.cpp](./parseclw.cpp)|muscle msa result parser
 |[ parsephy.cpp](./parsephy.cpp)|parse newick tree to get merged groups
+|[kmerStat.cpp](./kmerStat.cpp)|count kmers in a fasta/fastq file
