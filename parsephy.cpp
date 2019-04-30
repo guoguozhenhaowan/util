@@ -69,7 +69,10 @@ void parsePhy(const std::string& inphy, std::stack<std::vector<std::string>>& me
         nodeStack.push(std::make_pair(branch, std::atof(strVec[1].c_str())));
     }
     while(!nodeStack.empty()){
-        mergeStack.push(nodeStack.top().first);
+        curNode = nodeStack.top();
+        if(curNode.first.size() >= MIN_LEAVES_TO_MERGE){
+            mergeStack.push(curNode.first);
+        }
         nodeStack.pop();
     }
     fr.close();
