@@ -42,3 +42,4 @@ utilities
 |[parseclw.cpp](./parseclw.cpp)|muscle msa result parser
 |[ parsephy.cpp](./parsephy.cpp)|parse newick tree to get merged groups
 |[kmerStat.cpp](./kmerStat.cpp)|count kmers in a fasta/fastq file
+|[kseq.h](./kseq.h)|customized version kseq.h which seperate read and store
