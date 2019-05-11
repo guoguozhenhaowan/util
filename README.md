@@ -21,7 +21,9 @@ utilities
 |[fuzzy.h](./fuzzy.h)|c++ bitap search template
 |[verpair.c](./verpair.c)|get different read name of two fastq file
 |[versqual.c](./versqual.c)|check fq quality && sequence length
-|[CLI.hpp](./CLI.hpp)|recode from https://github.com/CLIUtils/CLI11
+|[CLI.hpp](./CLI.hpp)|recode from [CLI11](https://github.com/CLIUtils/CLI11)
+|[json.hpp](./json.hpp)|recode from [json](https://github.com/nlohmann/json)
+|[ctml.hpp](./ctml.hpp)|clone from [CTML](https://github.com/tinfoilboy/CTML)
 |[dirutil.h](./dirutil.h)|recode from https://github.com/gpakosz/whereami
 |[htmlutil.h](./htmlutil.h)|html writting utilities
 |[jsonutil.h](./jsonutil.h)|json writting utilities
