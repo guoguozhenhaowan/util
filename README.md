@@ -24,7 +24,7 @@ utilities
 |[CLI.hpp](./CLI.hpp)|recode from [CLI11](https://github.com/CLIUtils/CLI11)
 |[json.hpp](./json.hpp)|recode from [json](https://github.com/nlohmann/json)
 |[ctml.hpp](./ctml.hpp)|clone from [CTML](https://github.com/tinfoilboy/CTML)
-|[dirutil.h](./dirutil.h)|recode from https://github.com/gpakosz/whereami
+|[dirutil.h](./dirutil.h)|recode from [whereami](https://github.com/gpakosz/whereami)
 |[htmlutil.h](./htmlutil.h)|html writting utilities
 |[jsonutil.h](./jsonutil.h)|json writting utilities
 |[util.h](./util.h)|useful functions
