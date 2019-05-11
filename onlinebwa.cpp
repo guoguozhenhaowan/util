@@ -198,6 +198,7 @@ void OnlineBWA::alignSeq(const std::string& seq, const std::string& name, std::v
     if(!mIndex){
         return;
     }
+    result.clear();
     mem_alnreg_v ar = mem_align1(mMemOpt, mIndex->bwt, mIndex->bns, mIndex->pac, seq.length(), seq.data());
     for(size_t i = 0; i < ar.n; ++i){
         mem_aln_t a = mem_reg2aln(mMemOpt, mIndex->bns, mIndex->pac, seq.length(), seq.c_str(), &ar.a[i]);
