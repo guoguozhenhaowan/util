@@ -4443,9 +4443,6 @@ inline std::string Formatter::make_groups(const App *app, AppFormatMode mode) co
         });
         if(!group.empty() && !opts.empty()) {
             out << make_group(group, false, opts);
-
-            if(group != groups.back())
-                out << "\n";
         }
     }
 
