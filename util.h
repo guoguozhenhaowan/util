@@ -566,6 +566,43 @@ namespace util{
         }
         return diff;
     }
+    
+    /** get mismatch ratio of two uncleotide sequence
+     * @param s1 nucleotide sequence
+     * @param s2 nucleotide sequence
+     * @return mismatch ratio to the shorter string
+     */
+    inline float mismatchRatio(const std::string& s1, const std::string& s2){
+        uint32_t minLen = std::min(s1.length(), s2.length());
+        if(minLen == 0 || s1.find_first_of("ATCG") == std::string::npos || s2.find_first_of("ATCG") == std::string::npos){
+            return 1.0;
+        }
+        if(minLen == 1){
+            return s1[0] == s2[0];
+        }
+        size_t beg = 0;
+        for(beg = 0; beg < minLen; ++beg){
+            if(s1[beg] == 'N' || s2[beg] == 'N'){
+                ++beg;
+            }
+        }
+        size_t end = minLen - 1;
+        for(end = minLen - 1; end > beg; --end){
+            if(s1[end] == 'N' || s2[end] == 'N'){
+                --end;
+            }
+        }
+        int32_t mismatch = 0;
+        for(uint32_t i = beg; i <= end; ++i){
+            if(s1[i] == 'N' || s2[i] == 'N'){
+                continue;
+            }
+            if(s1[i] != s2[i]){
+                ++mismatch;
+            }
+        }
+        return float(mismatch)/(end - beg + 1);
+    }
 }
 
 #endif
