@@ -1,7 +1,8 @@
 /* generate report file
  * required files listed below
- * lib.fil.json         : filter json statistic file
- * lib.qc.json          : bamqc json statistic file
+ * lib.fqtool.json      : fqtool json statistic file
+ * lib.filter.json      : filter json statistic file
+ * lib.BasicQC.json     : bamqc json statistic file
  * lib.FusionReport.txt : fusionMap result
  * lib/abundance.tsv    : kallisto result
  * ensebml2genename     : NCBI ensembl to genename file
@@ -25,8 +26,9 @@
 
 namespace genrpt{
     struct args{
-        std::string filtlog;    ///< lib.fil.json
-        std::string bamqc;      ///< lib.qc.json
+        std::string fqqc;       ///< lib.fqtool.json
+        std::string filtlog;    ///< lib.filter.json
+        std::string bamqc;      ///< lib.BasicQC.json
         std::string fusionrpt;  ///< lib.FusionReport.txt
         std::string kabundance; ///< lib/abundance.tsv
         std::string ens2gname;  ///< ensebml2genename
@@ -43,8 +45,9 @@ namespace genrpt{
     
     void get_exp(genrpt::stats& s, const genrpt::args& a);
     void get_fratio(genrpt::stats& s, const genrpt::args& a);
-    double get_rratio(const std::string& filtlog);
-    void gen_qcsheet(lxw_worksheet* sheet, jsn::json& j);
+    void gen_fqqcsheet(lxw_worksheet* sheet, jsn::json& j);
+    void gen_ncrnasheet(lxw_worksheet* sheet, jsn::json& j);
+    void gen_bamqcsheet(lxw_worksheet* sheet, jsn::json& j);
     void gen_finarpt(const genrpt::stats& s, const genrpt::args& a);
     inline bool starts_with(const std::string& str, const std::string& pre){
         if(str.length() < pre.length()){
@@ -88,7 +91,8 @@ namespace genrpt{
 int main(int argc, char** argv){
     genrpt::args a;
     CLI::App app("generate report program");
-    app.add_option("-f", a.filtlog, "lib.fil.json")->required()->check(CLI::ExistingFile);
+    app.add_option("-q", a.fqqc, "lib.fqtool.json")->required()->check(CLI::ExistingFile);
+    app.add_option("-f", a.filtlog, "lib.filter.json")->required()->check(CLI::ExistingFile);
     app.add_option("-b", a.bamqc, "lib.bamqc.json")->required()->check(CLI::ExistingFile);
     app.add_option("-s", a.fusionrpt, "lib.FusionReport.txt")->required()->check(CLI::ExistingFile);
     app.add_option("-k", a.kabundance, "lib/abundance.tsv")->required()->check(CLI::ExistingFile);
@@ -98,7 +102,6 @@ int main(int argc, char** argv){
     CLI_PARSE(app, argc, argv);
 
     genrpt::stats s;
-    s.rratio = genrpt::get_rratio(a.filtlog);
     genrpt::get_exp(s, a);
     genrpt::get_fratio(s, a);
     genrpt::gen_finarpt(s, a);
@@ -176,14 +179,60 @@ void genrpt::get_fratio(genrpt::stats& s, const genrpt::args& a){
     s.rfusion /= ttreads;
 }
 
-double genrpt::get_rratio(const std::string& filtlog){
-    std::ifstream fr(filtlog);
-    jsn::json jr;
-    fr >> jr;
-    return jr["DropRate"];
+void genrpt::gen_fqqcsheet(lxw_worksheet* sheet, jsn::json& j){
+    size_t row = 0, maxc1len = 0, maxc2len = 0;
+    std::vector<std::string> items = {"TotalReads", "TotalBases", "Read1Length", "Read2Length", "GCRate", "Q20Bases", "Q20BaseRate", "Q30Bases", "Q30BaseRate"};
+    std::stringstream ss;
+    std::string colStr;
+    for(uint32_t i = 0; i < items.size(); ++i){
+        ss.clear();
+        ss.str("");
+        ss << j[items[i]];
+        colStr = ss.str();
+        colStr = replace(colStr, "\"", "");
+        worksheet_write_string(sheet, row, 0, items[i].c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, j[items[i]], NULL);
+        maxc1len = std::max(maxc1len, items[i].length());
+        maxc2len = std::max(maxc2len, colStr.length());
+    }
+    worksheet_set_column(sheet, 0, 0, maxc1len, NULL);
+    worksheet_set_column(sheet, 1, 1, maxc2len, NULL);
 }
 
-void genrpt::gen_qcsheet(lxw_worksheet* sheet, jsn::json& j){
+void genrpt::gen_ncrnasheet(lxw_worksheet* sheet, jsn::json& j){
+    size_t row = 0, maxc1len = 0, maxc2len = 0;
+    std::vector<std::string> genItems = {"ReadsIn", "ReadsGot", "ReadsDrop", "DropRate"};
+    std::stringstream ss;
+    std::string colStr;
+    jsn::json jgen = j["Summary"];
+    for(uint32_t i = 0; i < genItems.size(); ++i){
+        ss.clear();
+        ss.str("");
+        ss << jgen[genItems[i]];
+        colStr = ss.str();
+        colStr = replace(colStr, "\"", "");
+        worksheet_write_string(sheet, row, 0, genItems[i].c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, jgen[genItems[i]], NULL);
+        maxc1len = std::max(maxc1len, genItems[i].length());
+        maxc2len = std::max(maxc2len, colStr.length());
+    }
+    std::unordered_map<std::string, int32_t> jmap = j["FilterCount"];
+    for(auto& e: jmap){
+        ss.clear();
+        ss.str("");
+        ss << e.second;
+        colStr = ss.str();
+        colStr = replace(colStr, "\"", "");
+        worksheet_write_string(sheet, row, 0, e.first.c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, e.second, NULL);
+        maxc1len = std::max(maxc1len, e.first.length());
+        maxc2len = std::max(maxc2len, colStr.length());
+    }
+    worksheet_set_column(sheet, 0, 0, maxc1len, NULL);
+    worksheet_set_column(sheet, 1, 1, maxc2len, NULL);
+
+}
+void genrpt::gen_bamqcsheet(lxw_worksheet* sheet, jsn::json& j){
     size_t row = 0, maxc1len = 0, maxc2len = 0;
     std::vector<std::string> genItems = {"ReadLength", "TotalReads", "RegionSize", "InsertSize", "EffectiveReads", "EffectiveReadsRate", 
                                       "EffectiveBases", "EffectiveBasesRate", "MismatchBases", "MismatchBasesRate", "UniqMappedReads", 
@@ -203,7 +252,11 @@ void genrpt::gen_qcsheet(lxw_worksheet* sheet, jsn::json& j){
         colStr = ss.str();
         colStr = replace(colStr, "\"", "");
         worksheet_write_string(sheet, row, 0, genItems[i].c_str(), NULL);
-        worksheet_write_string(sheet, row++, 1, colStr.c_str(), NULL);
+        if(genItems[i] == "InsertSize"){
+            worksheet_write_string(sheet, row++, 1, colStr.c_str(), NULL);
+        }else{
+            worksheet_write_number(sheet, row++, 1, j[genItems[i]], NULL);
+        }
         maxc1len = std::max(maxc1len, genItems[i].length());
         maxc2len = std::max(maxc2len, colStr.length());
     }
@@ -214,7 +267,7 @@ void genrpt::gen_qcsheet(lxw_worksheet* sheet, jsn::json& j){
         ss << jcov[covItems[i]];
         colStr = ss.str();
         worksheet_write_string(sheet, row, 0, covItems[i].c_str(), NULL);
-        worksheet_write_string(sheet, row++, 1, colStr.c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, jcov[covItems[i]], NULL);
         maxc1len = std::max(maxc1len, covItems[i].length());
         maxc2len = std::max(maxc2len, colStr.length());
     }
@@ -224,18 +277,27 @@ void genrpt::gen_qcsheet(lxw_worksheet* sheet, jsn::json& j){
 
 void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
     lxw_workbook* workbook = new_workbook(a.outf.c_str());
-    jsn::json jbamqc;
-    std::ifstream fr(a.bamqc);
-    fr >> jbamqc;
-    // IDP QC
-    lxw_worksheet* sheet = workbook_add_worksheet(workbook, "IDP");
-    gen_qcsheet(sheet, jbamqc["DupIncludedQC"]);
-    // DDP QC
-    sheet = workbook_add_worksheet(workbook, "DDP");
-    gen_qcsheet(sheet, jbamqc["DupExcludeQC"]);
+    std::ifstream fr;
+    // sheet FastqQC
+    jsn::json jfqqc;
+    fr.open(a.fqqc.c_str());
+    fr >> jfqqc;
+    lxw_worksheet* sheet = workbook_add_worksheet(workbook, "FastqQC");
+    gen_fqqcsheet(sheet, jfqqc["Summary"]["AfterFiltering"]);
     fr.close();
-    // sheet GSETEXP
-    sheet = workbook_add_worksheet(workbook, "GSETEXP");
+    // bamqc sheets
+    jsn::json jbamqc;
+    fr.open(a.bamqc.c_str());
+    fr >> jbamqc;
+    // sheet DupIncludeQC
+    sheet = workbook_add_worksheet(workbook, "DupIncludeQC");
+    gen_bamqcsheet(sheet, jbamqc["DupIncludedQC"]);
+    // sheet DupExcludeQC
+    sheet = workbook_add_worksheet(workbook, "DupExcludeQC");
+    gen_bamqcsheet(sheet, jbamqc["DupExcludeQC"]);
+    fr.close();
+    // sheet OnTargetGeneExp
+    sheet = workbook_add_worksheet(workbook, "OnTargetGeneExp");
     int row = 0, col = 0;
     size_t maxc1len = 0, maxc2len = 0;
     std::string prefix, suffix, line;
@@ -249,14 +311,14 @@ void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
         oss << e.second;
         suffix = oss.str();
         worksheet_write_string(sheet, row, 0, prefix.c_str(), NULL);
-        worksheet_write_string(sheet, row++, 1, suffix.c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, e.second, NULL);
         maxc1len = std::max(maxc1len, prefix.length());
         maxc2len = std::max(maxc2len, suffix.length());
     }
     worksheet_set_column(sheet, 0, 0, maxc1len, NULL);
     worksheet_set_column(sheet, 1, 1, maxc2len, NULL);
-    // sheet GOSETEXP
-    sheet = workbook_add_worksheet(workbook, "GOSETEXP");
+    // sheet AllGeneExp
+    sheet = workbook_add_worksheet(workbook, "AllGeneExp");
     row = 0, col = 0;
     maxc1len = 0, maxc2len = 0;
     worksheet_write_string(sheet, row, 0, "Gene", NULL);
@@ -268,14 +330,14 @@ void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
         oss << e.second;
         suffix = oss.str();
         worksheet_write_string(sheet, row, 0, prefix.c_str(), NULL);
-        worksheet_write_string(sheet, row++, 1, suffix.c_str(), NULL);
+        worksheet_write_number(sheet, row++, 1, e.second, NULL);
         maxc1len = std::max(maxc1len, prefix.length());
         maxc2len = std::max(maxc2len, suffix.length());
     }
     worksheet_set_column(sheet, 0, 0, maxc1len, NULL);
     worksheet_set_column(sheet, 1, 1, maxc2len, NULL);
-    // sheet fusionmap
-    sheet = workbook_add_worksheet(workbook, "FusionMap");
+    // sheet FusionResult
+    sheet = workbook_add_worksheet(workbook, "FusionResult");
     row = 0, col = 0;
     maxc1len = 0, maxc2len = 0;
     std::vector<size_t> vclen;
@@ -299,28 +361,25 @@ void genrpt::gen_finarpt(const genrpt::stats& s, const genrpt::args& a){
     for(size_t i = 0; i < vclen.size(); ++i){
         worksheet_set_column(sheet, i, i, vclen[i], NULL);
     }
+    fr.close();
+    // sheet NCRnaRatio
+    fr.open(a.filtlog.c_str());
+    jsn::json jfilter;
+    fr >> jfilter;
+    sheet = workbook_add_worksheet(workbook, "NCRnaRatio");
+    gen_ncrnasheet(sheet, jfilter["FilterResult"]);
+    fr.close();
     // sheet Extra
     row = 0, col = 0;
     maxc1len = 0,  maxc2len = 0;
     sheet = workbook_add_worksheet(workbook, "Extra");
-    // rrna ratio
-    oss.clear();
-    oss.str("");
-    oss << s.rratio;
-    suffix = oss.str();
-    maxc2len = std::max(suffix.length(), maxc2len);
-    worksheet_write_string(sheet, row, col++, "rRNA Ratio", NULL);
-    worksheet_write_string(sheet, row++, col++, suffix.c_str(), NULL);
-    // fusion reads ratio
-    col = 0;
     oss.clear();
     oss.str("");
     oss << s.rfusion;
     suffix = oss.str();
     maxc2len = std::max(suffix.length(), maxc2len);
-    col = 0; 
     worksheet_write_string(sheet, row, col++, "FusionReadsRatio", NULL);
-    worksheet_write_string(sheet, row++, col++, suffix.c_str(), NULL);
+    worksheet_write_number(sheet, row, col++, s.rfusion, NULL);
     worksheet_set_column(sheet, 0, 0, 16, NULL);
     worksheet_set_column(sheet, 1, 1, maxc2len, NULL);
     workbook_close(workbook);

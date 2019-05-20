@@ -1,0 +1,31 @@
+{
+    "FilterResult": {
+        "FilterCount": {
+            "3prime_overlapping_ncrna": 43,
+            "Mt_rRNA": 1,
+            "Mt_tRNA": 137,
+            "antisense": 20002,
+            "lincRNA": 53975,
+            "miRNA": 781,
+            "misc_RNA": 1820,
+            "processed_transcript": 2252,
+            "rRNA": 823,
+            "retained_intron": 820,
+            "sense_intronic": 538,
+            "sense_overlapping": 332,
+            "snRNA": 20,
+            "snoRNA": 104
+        },
+        "Summary": {
+            "DropRate": 0.02743578809845674,
+            "ReadsDrop": 81648,
+            "ReadsGot": 2894319,
+            "ReadsIn": 2975967
+        }
+    },
+    "Software": {
+        "CWD": "/share/Oncology/VanNul/work/fusion0518/output/03.filtdb",
+        "Command": "/share/work1/wulj/programs/bin//filter -i /share/Oncology/VanNul/work/fusion0518/output/02.cutadapter/PWX0515R505_B24.R1.fq.gz -I /share/Oncology/VanNul/work/fusion0518/output/02.cutadapter/PWX0515R505_B24.R2.fq.gz -r /share/work1/wulj/programs//db//ncrna/Homo_sapiens.GRCh37.ncrna.class.fa -m 15 -d -o /share/Oncology/VanNul/work/fusion0518/output/03.filtdb/ -p PWX0515R505_B24 ",
+        "Version": "0.0.0"
+    }
+}
