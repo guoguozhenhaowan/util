@@ -35,13 +35,15 @@ utilities
 |[filewriter.cpp](./filewriter.cpp)|implementation of some functions in [filewriter.h](./filewriter.h)
 |[getReadPairByFlag.cpp](./getReadPairByFlag.cpp)|get/filter readpair from bam alignment flag
 |[cleanFaName.cpp](./cleanFaName.cpp)|clean fasta file names by remove all contens after the first blank space
-|[regionStepGCDepth.gcc](./regionStepGCDepth.gcc)|step-wise gc and depth table generator for bam alignment
+|[regionStepGCDepth.cpp](./regionStepGCDepth/regionStepGCDepth.cpp)|step-wise gc and depth table generator for bam alignment
 |[unalignedseq.h](./unalignedseq.h)|unaligned sequence class 
 |[onlinebwa.h](./onlinebwa.h)|online bwa mem
 |[onlinebwa.cpp](./onlinebwa.cpp)|some functions implementation of [onlinebwa.h](./onlinebwa.h)
 |[extractBamByZF.cpp](./extractBamByZF.cpp)|extract bam records by ZF flag to bam files
 |[splitBamByZF.cpp](./splitBamByZF.cpp)|split bam according to ZF flag to bam files
 |[parseclw.cpp](./parseclw.cpp)|muscle msa result parser
-|[ parsephy.cpp](./parsephy.cpp)|parse newick tree to get merged groups
+|[parsephy.cpp](./parsephy.cpp)|parse newick tree to get merged groups
 |[kmerStat.cpp](./kmerStat.cpp)|count kmers in a fasta/fastq file
 |[kseq.h](./kseq.h)|customized version kseq.h which seperate read and store
+|[compareBamRead.cpp](./compareBamRead.cpp)|compare reads included in two bams
+|[getContig.cpp](./getContig.cpp)|get region of a contig in reference
