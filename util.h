@@ -603,6 +603,19 @@ namespace util{
         }
         return float(mismatch)/(end - beg + 1);
     }
+
+    /** get median of a list of values
+     * @param v a vector of values
+     * @return median of values in v
+     */
+    template<typename T>
+    inline double median(std::vector<T>& v){
+        std::nth_element(v.begin(), v.begin() + v[v.size()/2], v.end()); 
+        if(v.size() % 2 == 0){
+            return (v[v.size()/2] + v[v.size()/2 -1]) / 2.0;
+        }
+        return v[v.size()/2];
+    }
 }
 
 #endif

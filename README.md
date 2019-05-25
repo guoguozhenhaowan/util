@@ -47,3 +47,4 @@ utilities
 |[kseq.h](./kseq.h)|customized version kseq.h which seperate read and store
 |[compareBamRead.cpp](./compareBamRead.cpp)|compare reads included in two bams
 |[getContig.cpp](./getContig.cpp)|get region of a contig in reference
+|[statutil.h](./statutil.h)|utilities to calculate some statistical items
