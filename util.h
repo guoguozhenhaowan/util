@@ -300,7 +300,7 @@ namespace util{
     /** exit and print string to std::cerr
      * @param msg string to print to std::cerr
      */
-    inline void error_exit(const std::string& msg){
+    inline void errorExit(const std::string& msg){
         std::cerr << "ERROR: " << msg << std::endl;
         exit(-1);
     }
@@ -310,10 +310,10 @@ namespace util{
      */
     inline void validFile(const std::string& path){
         if(util::isdir(path)){
-            util::error_exit("this is not a file path!");
+            util::errorExit("this is not a file path!");
         }
         if(!util::isfile(path)){
-            util::error_exit("file does not exist");
+            util::errorExit("file does not exist");
         }
     }
 
