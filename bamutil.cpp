@@ -535,3 +535,18 @@ int bamutil::getMinDistToReadEnd(const bam_pileup1_t* p){
     std::pair<int, int> clipLen = getSoftClipLength(p->b);
     return std::min(p->qpos + 1 - clipLen.first, p->b->core.l_qseq - clipLen.second - p->qpos - 1);
 }
+
+bool bamutil::bamIsPE(const char* bamFile){
+    samFile* fp = sam_open(bamFile, "r");
+    bam_hdr_t* h = sam_hdr_read(fp);
+    bam1_t* b = bam_init1();
+    bool isPE = false;
+    assert(sam_read1(fp, h, b) >= 0);
+    if(b->core.flag & BAM_FPAIRED){
+        isPE = true;
+    }
+    bam_hdr_destroy(h);
+    bam_destroy1(b);
+    sam_close(fp);
+    return isPE;
+}

@@ -266,6 +266,12 @@ namespace bamutil{
      * @return minimal distance from p->qpos to ends of read
      */
     int getMinDistToReadEnd(const bam_pileup1_t* p);
+
+    /** check a bam is alignment result of pairend reads or not
+     * @param bamFile bam file name
+     * @return true if bam is alignment result of pairend reads
+     */
+    bool bamIsPE(const char* bamFile);
 }
 
 #endif
