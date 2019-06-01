@@ -82,8 +82,8 @@ int main(int argc, char** argv){
         std::cout << std::string(argv[0]) << " <refgenewithaccs> <transcriptlist> <output> " << std::endl;
         std::exit(0);
     }
-    util::FileReader freader = {std::string(argv[1])};
-    util::FileWriter fwriter = {std::string(argv[3])};
+    FileReader freader = {std::string(argv[1])};
+    FileWriter fwriter = {std::string(argv[3])};
     std::vector<std::string> vtrs;
     util::makeListFromFileByLine(std::string(argv[2]), vtrs);
     std::set<std::string> strs(vtrs.begin(), vtrs.end());
