@@ -27,7 +27,8 @@ utilities
 |[dirutil.h](./dirutil.h)|recode from [whereami](https://github.com/gpakosz/whereami)
 |[htmlutil.h](./htmlutil.h)|html writting utilities
 |[jsonutil.h](./jsonutil.h)|json writting utilities
-|[util.h](./util.h)|useful functions
+|[util.h](./util.h)|useful functions for common usage
+|[bamutil.h](./bamutil.h)|useful functions to work with bam
 |[flagdel.cpp](./flagdel.cpp)|unmask some flag in a bam
 |[filereader.h](./filereader.h)|general plain/gz format file reader
 |[filewriter.h](./filewriter.h)|general plain/gz format file writer
