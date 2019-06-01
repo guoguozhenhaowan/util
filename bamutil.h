@@ -202,7 +202,7 @@ namespace bamutil{
      * @param i position at which to change nucleotide(0 based)
      * @param ch nucleotide to change to
      */
-    void setBase(bam1_t* b, int i, char ch){
+    inline void setBase(bam1_t* b, int i, char ch){
         if(i < 0 || i > b->core.l_qseq - 1){
             std::cerr << "Invalid position to set base!" << std::endl;
             std::exit(1);
@@ -220,7 +220,7 @@ namespace bamutil{
      * @param cigarMOffset length of sequence consumed in read befor the first cigar M
      * @param cigarMOpLen the first cigar M consumed length
      */
-    void getFirstcigarMOffsetAndLen(const bam1_t* b, int& cigarMOffset, int& cigarMOpLen){
+    inline void getFirstCigarM(const bam1_t* b, int& cigarMOffset, int& cigarMOpLen){
         uint32_t* data = bam_get_cigar(b);
         int len = 0;
         for(uint32_t i = 0; i < b->core.n_cigar; ++i){
@@ -245,7 +245,7 @@ namespace bamutil{
      * @param b pointer to bam1_t struct
      * @return edit distance of this alignment record if NM tag parsed properly, else 0
      */
-    int getEditDistance(const bam1_t* b){
+    inline int getEditDistance(const bam1_t* b){
         uint8_t* data = bam_aux_get(b, "NM");
         if(!data){
             return 0;
@@ -257,7 +257,7 @@ namespace bamutil{
      * @param b pointer to bam1_t struct
      * @return quality sum of read in b
      */
-    int32_t getQualSum(const bam1_t* b){
+    inline int32_t getQualSum(const bam1_t* b){
        int32_t qsum = 0;
        uint8_t* qseq = bam_get_qual(b);
        for(int32_t i = 0; i < b->core.l_qseq; ++i){
@@ -270,7 +270,7 @@ namespace bamutil{
      * @param b pointer to bam1_t struct
      * @return effective bases number
      */
-    int32_t getEffecBases(const bam1_t* b){
+    inline int32_t getEffecBases(const bam1_t* b){
         int32_t effBase = 0;
         uint32_t* data = bam_get_cigar(b);
         for(uint32_t i = 0; i < b->core.n_cigar; ++i){
@@ -291,7 +291,7 @@ namespace bamutil{
      * @param f reference file
      * @return mismatches positions on reference(0 based)
      */
-    std::vector<int32_t> getMismatchPos(const bam_hdr_t* h, const bam1_t* b, const faidx_t* f){
+    inline std::vector<int32_t> getMismatchPos(const bam_hdr_t* h, const bam1_t* b, const faidx_t* f){
         int32_t len = 0;
         char* ref = faidx_fetch_seq(f, h->target_name[b->core.tid], b->core.pos, bam_endpos(b) - 1, &len);
         std::vector<int32_t> ret;
@@ -545,6 +545,20 @@ namespace bamutil{
         bam_destroy1(b);
         sam_close(fp);
         return isPE;
+    }
+
+    /** check a bam alignment have soft clipped seq
+     * @param b pointer to bam1_t
+     * @return true if BAM_CSOFT_CLIP is in cigar
+     */
+    inline bool haveSoftClip(const bam1_t* b){
+        uint32_t* cigar = bam_get_cigar(b);
+        for(uint32_t i = 0; i < b->core.n_cigar; ++i){
+            if(bam_cigar_op(cigar[i]) == BAM_CSOFT_CLIP){
+                return true;
+            }
+        }
+        return false;
     }
   
 }
