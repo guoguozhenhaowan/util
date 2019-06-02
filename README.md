@@ -33,6 +33,7 @@ utilities
 |[filereader.h](./filereader.h)|general plain/gz format file reader
 |[filewriter.h](./filewriter.h)|general plain/gz format file writer
 |[getReadPairByFlag.cpp](./getReadPairByFlag.cpp)|get/filter readpair from bam alignment flag
+|[getAlnByRead.cpp](./getAlnByRead.cpp)|get alignment record of one read by read name
 |[cleanFaName.cpp](./cleanFaName.cpp)|clean fasta file names by remove all contens after the first blank space
 |[regionStepGCDepth.cpp](./regionStepGCDepth/regionStepGCDepth.cpp)|step-wise gc and depth table generator for bam alignment
 |[unalignedseq.h](./unalignedseq.h)|unaligned sequence class 
