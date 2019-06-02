@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <sstream>
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -67,27 +68,23 @@ namespace bamutil{
      */
     inline std::string getCigar(const bam1_t* b){
         uint32_t* data = bam_get_cigar(b);
-        std::string cigarSeq(2 * b->core.n_cigar, '\0');
+        std::stringstream cigarSeq;
         for(uint32_t i = 0; i < b->core.n_cigar; ++i){
-            cigarSeq[2 * i] = bam_cigar_opchr(data[i]);
-            cigarSeq[2 * i + 1] = bam_cigar_oplen(data[i]);
+            cigarSeq << bam_cigar_oplen(data[i]);
+            cigarSeq << bam_cigar_opchr(data[i]);
         }
-        return cigarSeq;
+        return cigarSeq.str();
     }
     
-    /** operator to output an alignment record to ostream
-     * @param os reference to ostream
-     * @param b pointer to bam1_t struct
-     */
-    inline std::ostream& operator<<(std::ostream& os, const bam1_t* b){
-        os << "R:     " << b->core.tid << ":" << b->core.pos << "\n";
-        os << "M:     " << b->core.mtid << ":" <<  b->core.mpos << "\n";
-        os << "TLEN:  " << b->core.isize << "\n";
-        os << "QName: " << getQName(b) << "\n";
-        os << "Cigar: " << getCigar(b) << "\n";
-        os << "Seq:   " << getSeq(b) << "\n";
-        os << "Qual:  " << getQual(b) << std::endl;
-        return os;
+    /** output an alignment record to std::cerr */
+    inline void dump(const bam1_t* b){
+        std::cerr << "R:     " << b->core.tid << ":" << b->core.pos << "\n";
+        std::cerr << "M:     " << b->core.mtid << ":" <<  b->core.mpos << "\n";
+        std::cerr << "TLEN:  " << b->core.isize << "\n";
+        std::cerr << "QName: " << getQName(b) << "\n";
+        std::cerr << "Cigar: " << getCigar(b) << "\n";
+        std::cerr << "Seq:   " << getSeq(b) << "\n";
+        std::cerr << "Qual:  " << getQual(b) << std::endl;
     }
 
     /** test wheather an alignment record is part of another alignment record
