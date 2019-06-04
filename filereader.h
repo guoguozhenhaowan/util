@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fstream>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 /** Class to hold a file reader in the format .gz or plain text */
@@ -56,7 +57,7 @@ class FileReader{
      */
     inline void getBytes(size_t& bytesRead, size_t& bytesTotal){
         if(mZipped){
-            bytesRead = ::gzoffset(mGzipFile);
+            bytesRead = gzoffset(mGzipFile);
         }else{
             bytesRead = std::ftell(mFile);
         }
@@ -167,7 +168,7 @@ private:
      */
     inline bool eof(){
         if(mZipped){
-            return ::gzeof(mGzipFile);
+            return gzeof(mGzipFile);
         }else{
             return std::feof(mFile);
         }
@@ -181,7 +182,7 @@ private:
      */ 
     inline void init(){
         if(isZippedFile(mFileName)){
-            mGzipFile = ::gzopen(mFileName.c_str(), "r");
+            mGzipFile = gzopen(mFileName.c_str(), "r");
             mZipped = true;
             gzrewind(mGzipFile);
         }else{

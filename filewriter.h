@@ -134,7 +134,7 @@ class FileWriter{
     /** initialize FileWriter, detect file format and open file handler
      */
     inline void init(){
-        if(util::ends_with(mFilename, ".gz")){
+        if(mFilename.length() >= 4 && mFilename.substr(mFilename.length() - 3) == ".gz"){
             mGzFile = gzopen(mFilename.c_str(), "w");
             gzsetparams(mGzFile, mCompressLevel, Z_DEFAULT_STRATEGY);
             gzbuffer(mGzFile, 1024 * 1024);

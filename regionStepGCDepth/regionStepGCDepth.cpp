@@ -1,6 +1,7 @@
 #include "htslib/faidx.h"
 #include "filereader.h"
 #include "filewriter.h"
+#include "util.h"
 #include <iostream>
 #include <cassert>
 #include <sstream>
@@ -25,15 +26,15 @@ double avgDepth(std::vector<int>& depv, int beg, int end){
 }
 
 void depMap(const char* file, std::map<std::string, std::vector<int>>& dmap){
-    util::FileReader dr(file);
+    FileReader dr(file);
     std::string tstr;
     std::vector<std::string> vstr;
     while(dr.getline(tstr)){
         util::split(tstr, vstr, "\t");
         if(dmap.find(vstr[0]) == dmap.end()){
-            dmap[vstr[0]] = {std::atoi(vstr[1].c_str())};
+            dmap[vstr[0]] = {std::atoi(vstr[2].c_str())};
         }else{
-            dmap[vstr[0]].push_back(std::atoi(vstr[1].c_str()));
+            dmap[vstr[0]].push_back(std::atoi(vstr[2].c_str()));
         }
     }
 }
@@ -52,7 +53,7 @@ int main(int argc, char** argv){
     int step = std::atoi(argv[3]);
 
     faidx_t* fai = fai_load(infa);
-    util::FileReader fr(inreg);
+    FileReader fr(inreg);
     std::string line;
     std::vector<std::string> vs;
     int len;
