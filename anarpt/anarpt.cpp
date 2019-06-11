@@ -129,6 +129,7 @@ void genrpt::genRNAClassSheet(lxw_worksheet* sheet, jsn::json& jfilter, jsn::jso
     jsn::json jCount = jfilter["FilterCount"];
     statMap["TotalReads"] = jfilter["Summary"]["ReadsIn"];
     statMap["mRNA"] = jbamqc["EffectiveReads"];
+    statMap["mRNA"] /= 2;
     classifiedReads += statMap["mRNA"];
     //lincRNA
     if(jCount.find("lincRNA") == jCount.end()){
@@ -305,9 +306,10 @@ void genrpt::genFinalReport(const genrpt::Stats& s, const genrpt::Options& opt){
     sheet = workbook_add_worksheet(workbook, "Extra");
     // DNA Pollution
     worksheet_write_string(sheet, row, col++, "DNAPolluteRate", NULL);
-    double effReads = jbamqc["DupIncludedQC"]["EffectiveReads"];
+    double mappedReads = jbamqc["DupIncludedQC"]["EffectiveReads"];
+    double filterGotReads = jbamqc["DupIncludedQC"]["TotalReads"];
     int32_t totReads = jfilter["FilterResult"]["Summary"]["ReadsIn"];
-    worksheet_write_number(sheet, row++, col, 1 - effReads/totReads, NULL);
+    worksheet_write_number(sheet, row++, col, 0.5 * (filterGotReads - mappedReads)/totReads, NULL);
     // Dup Rate
     col = 0;
     worksheet_write_string(sheet, row, col++, "DupRate", NULL);
