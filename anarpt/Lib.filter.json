@@ -1,0 +1,32 @@
+{
+    "FilterResult": {
+        "FilterCount": {
+            "3prime_overla": 219,
+            "3prime_overlapping_ncrna": 2226,
+            "Mt_rRNA": 48979,
+            "Mt_tRNA": 2023,
+            "antisense": 645161,
+            "lincRNA": 591522,
+            "miRNA": 33091,
+            "misc_RNA": 29761,
+            "processed_transcript": 145098,
+            "rRNA": 2180035,
+            "retained_intron": 37267,
+            "sense_intronic": 35357,
+            "sense_overlapping": 29150,
+            "snRNA": 5722,
+            "snoRNA": 3276
+        },
+        "Summary": {
+            "DropRate": 0.21075075618614192,
+            "ReadsDrop": 3788887,
+            "ReadsGot": 14189160,
+            "ReadsIn": 17978047
+        }
+    },
+    "Software": {
+        "CWD": "/share/Oncology/VanNul/work/exome0610/samevol/02.filter",
+        "Command": "/share/work1/wulj/programs/bin//filter -d -i /share/Oncology/VanNul/work/exome0610/samevol/01.fqtool/cfmRNA012.R1.fq -I /share/Oncology/VanNul/work/exome0610/samevol/01.fqtool/cfmRNA012.R2.fq -r /share/work1/wulj/programs//db//ncrna/Homo_sapiens.GRCh37.ncrna.class.fa -o /share/Oncology/VanNul/work/exome0610/samevol/02.filter//cfmRNA012.R1.fq -O /share/Oncology/VanNul/work/exome0610/samevol/02.filter//cfmRNA012.R2.fq -l /share/Oncology/VanNul/work/exome0610/samevol/02.filter//cfmRNA012.filter.json ",
+        "Version": "0.0.0"
+    }
+}
