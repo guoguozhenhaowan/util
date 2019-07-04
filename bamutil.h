@@ -239,6 +239,32 @@ namespace bamutil{
         cigarMOpLen = 0;
     }
 
+    /** get the first softclip status
+     * @param b pointer to bam1_t struct
+     * @param cigarSOffset length of sequence consumed in read before the first cigar S
+     * @param cigarSOpLen the first cigar S consumed length
+     */
+    inline void getFirstCigarS(const bam1_t* b, int& cigarSOffset, int& cigarSOpLen){
+        uint32_t* data = bam_get_cigar(b);
+        int len = 0;
+        for(uint32_t i = 0; i < b->core.n_cigar; ++i){
+            if(bam_cigar_op(data[i]) == BAM_CSOFT_CLIP){
+                cigarSOffset = len;
+                cigarSOpLen = bam_cigar_oplen(data[i]);
+                return;
+            }
+            switch(bam_cigar_type(bam_cigar_op(data[i]))){
+                case 1: case 3:
+                    len += bam_cigar_oplen(data[i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        cigarSOffset = -1;
+        cigarSOpLen = 0;
+    }
+
     /** get edit distance of this alignment record
      * @param b pointer to bam1_t struct
      * @return edit distance of this alignment record if NM tag parsed properly, else 0
