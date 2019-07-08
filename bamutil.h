@@ -166,6 +166,31 @@ namespace bamutil{
         return -1;
     }
 
+    /** return length of reference consumed in alignment record
+     * @param b pointer to bam1_t struct
+     * @return length of reference consumed in alignmen record
+     */
+    inline int getRefLen(const bam1_t* b){
+        uint32_t* data = bam_get_cigar(b);
+        int r = 0; // reference consumed length
+        for(uint32_t i = 0; i < b->core.n_cigar; ++i){
+            uint32_t oplen = bam_cigar_oplen(data[i]);
+            int opmask = bam_cigar_op(data[i]);
+            switch(bam_cigar_type(opmask)){
+                case 2:
+                    r += oplen;
+                    break;
+                case 3:
+                    r += oplen;
+                    break;
+                default:
+                    break;
+            }
+        }
+        return r;
+    }
+
+
     /** set read name of one alignment record 
      * @param b pointer to bam1_t struct
      * @param n new name to be used in this read

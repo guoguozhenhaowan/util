@@ -462,6 +462,18 @@ namespace util{
         return retSeq;
     }
 
+    /** get forward completment sequene of a nucleotide sequence
+     * @param seq a nucleotide sequence
+     * @return the forward completement sequence of seq
+     */
+    inline std::string forwardComplement(const std::string& seq){
+        std::string retSeq(seq.length(), '\0');
+        for(uint32_t i = 0; i < retSeq.length(); ++i){
+            retSeq[i] = complement(seq[i]);
+        }
+        return retSeq;
+    }
+
     /** write a log message to std::cerr in a thread-safe way
      * @param s log message 
      * @param logmtx reference to a std::mutex object
