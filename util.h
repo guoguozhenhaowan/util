@@ -628,6 +628,14 @@ namespace util{
         }
         return v[v.size()/2];
     }
+
+    /** test whether a string contains only AaCcGgTt (ie. is DNA)
+     * @param seq string of characters
+     * @return true if seq contains only AaCcGgTt
+     */
+    inline bool isDNA(const std::string& seq){
+        return seq.find_first_not_of("AaTtCcGg") == std::string::npos;
+    }
 }
 
 #endif
