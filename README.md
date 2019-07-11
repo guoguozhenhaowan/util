@@ -48,3 +48,4 @@ utilities
 |[compareBamRead.cpp](./compareBamRead.cpp)|compare reads included in two bams
 |[getContig.cpp](./getContig.cpp)|get region of a contig in reference
 |[statutil.h](./statutil.h)|utilities to calculate some statistical items
+|[intervalTree.h](./intervalTree.h)|a simple interval tree support construct once and query later
