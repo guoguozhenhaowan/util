@@ -695,7 +695,7 @@ char **sam_header2list(const void *_dict, char type[2], char key_tag[2], int *_n
     return ret;
 }
 
-void *sam_header2key_val(void *iter, const char type[2], const char key_tag[2], const char value_tag[2], const char **_key, const char **_value)
+void *sam_header2key_val(void *iter, const char type[2], const char key_tag[2], const char value_tag[2], const char **_key, const char **_value, bool& eof)
 {
     list_t *l = (list_t*)iter;
     if ( !l ) return NULL;
@@ -720,6 +720,9 @@ void *sam_header2key_val(void *iter, const char type[2], const char key_tag[2], 
 
         *_key = key->value;
         *_value = value->value;
+        if(!l->next){
+            eof = true;
+        }
         return l->next;
     }
     return l;
