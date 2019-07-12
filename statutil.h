@@ -1,7 +1,8 @@
 #include <map>
 #include <cmath>
 #include <vector>
-#include <iostream>
+#include <numeric>
+#include <algorithm>
 #include <unordered_map>
 
 namespace statutil{
@@ -130,10 +131,58 @@ namespace statutil{
      */
     template<typename T>
     inline double median(std::vector<T>& v){
-        std::nth_element(v.begin(), v.begin() + v[v.size()/2], v.end());
-        if(v.size() % 2 == 0){
-            return (v[v.size()/2] + v[v.size()/2 -1]) / 2.0;
-        }
+        std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
         return v[v.size()/2];
     }
+
+    /** get mean of a list of values
+     * @param v a vector of values
+     * @return mean of values in v
+     */
+    template<typename T>
+    inline double mean(const std::vector<T>& v){
+        if(v.size() == 0){
+            return 0;
+        }
+        double sum = std::accumulate(v.begin(), v.end(), 0.0);
+        return sum / v.size();
+    }
+
+    /** get sd of a list of values
+     * @param v a vector of values
+     * @return sd of values in v
+     */
+    template<typename T>
+    inline double sd(const std::vector<T>& v){
+        double m = mean(v);
+        std::vector<T> diff(v.size(), 0);
+        std::transform(v.begin(), v.end(), diff.begin(), [&m](const T& e){return e - m;});
+        std::transform(diff.begin(), diff.end(), diff.begin(), [](T& e){return e * e;});
+        return std::sqrt(std::accumulate(diff.begin(), diff.end(), 0.0)/(v.size() - 1));
+    }
+
+    /** get percentile of a list of values
+     * @param v a vector of values
+     * @param p percents in [0, 1]
+     * @return percentile of p in v
+     */
+    template<typename T>
+    inline T percentile(std::vector<T>& v, double p){
+        int nth = v.size() * p;
+        std::nth_element(v.begin(), v.begin() + nth, v.end());
+        return v[nth];
+    }
+
+    /** get MAD of a list of values
+     * @param v a vector of values
+     * @param m median of v
+     * @return mad of v
+     */
+    template<typename T>
+    inline T mad(const std::vector<T>& v, const T& m){
+        std::vector<T> absDev;
+        std::transform(v.begin(), v.end(), absDev.begin(), [&m](const T& e){return std::abs(e -m);});
+        return median(absDev);
+    }
+
 }

@@ -636,10 +636,7 @@ namespace util{
      */
     template<typename T>
     inline double median(std::vector<T>& v){
-        std::nth_element(v.begin(), v.begin() + v[v.size()/2], v.end()); 
-        if(v.size() % 2 == 0){
-            return (v[v.size()/2] + v[v.size()/2 -1]) / 2.0;
-        }
+        std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
         return v[v.size()/2];
     }
 
