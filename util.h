@@ -461,7 +461,23 @@ namespace util{
         }
         return retSeq;
     }
-
+    
+    /** reverse completement an sequence of a nucleotide sequence
+     * @param seq a nucleotide sequence to be reverse complemented
+     */
+    inline void reverseComplement(std::string& seq){
+        int32_t i = seq.size() - 1;
+        int32_t j = 0;
+        char tmpChr = '\0';
+        while(j <= i){
+            tmpChr = complement(seq[i]);
+            seq[i] = complement(seq[j]);
+            seq[j] = tmpChr;
+            ++j;
+            --i;
+        }
+    }
+    
     /** get forward completment sequene of a nucleotide sequence
      * @param seq a nucleotide sequence
      * @return the forward completement sequence of seq
@@ -636,7 +652,7 @@ namespace util{
      */
     template<typename T>
     inline double median(std::vector<T>& v){
-        std::nth_element(v.begin(), v.begin() + v.size()/2, v.end());
+        std::nth_element(v.begin(), v.begin() + v.size()/2, v.end()); 
         return v[v.size()/2];
     }
 
