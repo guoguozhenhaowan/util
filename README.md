@@ -51,3 +51,4 @@ utilities
 |[intervalTree.h](./intervalTree.h)|a simple interval tree support construct once and query later
 |[samheader.h](./samheader.h)|utilities to operate on sam/bam header, revised from[samtools](https://github.com/samtools/samtools)
 |[samheader.cpp](./samheader.cpp)|some functions inmplmentation of [samheader.h](./samheader.h), revised from[samtools](https://github.com/samtools/samtools)
+|[simulateSV.cpp](./simulateSV.cpp)|simulate SV from reference
