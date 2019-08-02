@@ -504,15 +504,27 @@ namespace util{
                 t->tm_hour, t->tm_min, t->tm_sec);
         std::cerr << date << s << std::endl;
     }
+    /** write a log message to std::cerr directly
+     * @param s log message 
+     */
+    inline void loginfo(const std::string& s){
+        time_t tt = time(NULL);
+        tm* t = std::localtime(&tt);
+        char date[60] = {0};
+        std::sprintf(date, "[%d-%02d-%02d %02d:%02d:%02d] ",
+                t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                t->tm_hour, t->tm_min, t->tm_sec);
+        std::cerr << date << s << std::endl;
+    }
 
     /** get current time
-     * @return [year-mm-dd hh-mm-ss] of current time
+     * @return year-mm-dd hh-mm-ss of current time
      */
     inline std::string currentTime(void){
         time_t tt = time(NULL);
         tm* t = std::localtime(&tt);
         char date[60] = {0};
-        std::sprintf(date, "[%d-%02d-%02d %02d:%02d:%02d] ",
+        std::sprintf(date, "%d-%02d-%02d %02d:%02d:%02d",
                 t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
                 t->tm_hour, t->tm_min, t->tm_sec);
         return date;
