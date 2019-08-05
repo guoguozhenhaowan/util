@@ -53,3 +53,4 @@ utilities
 |[samheader.cpp](./samheader.cpp)|some functions inmplmentation of [samheader.h](./samheader.h), revised from[samtools](https://github.com/samtools/samtools)
 |[simulateSV.cpp](./simulateSV.cpp)|simulate SV from reference
 |[fq2fa.c](./fq2fa.c)|a simple tool to convert fastq to fasta
+|[modifyGTF.cpp](./modifyGTF.cpp)|modify UCSC gtf file to add gene name in group column
