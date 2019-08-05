@@ -18,7 +18,7 @@ bName = os.path.basename(anarpt2).replace(".report.xlsx", "")
 dfa = pd.read_excel(anarpt1, sheet_name="AllGeneExp")
 dfb = pd.read_excel(anarpt2, sheet_name="AllGeneExp")
 # intersection 
-both = dfa.merge(dfb, how="inner", on="Gene", suffixes=(aName, bName))
+both = dfa.merge(dfb, how="inner", on="Gene", suffixes=("_" + aName, "_" + bName))
 both.to_csv("Gene.In.Both.csv", index=False)
 # only a
 onlya = dfa[~dfa["Gene"].isin(both["Gene"])]
