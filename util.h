@@ -111,6 +111,22 @@ namespace util{
             las = cur;
         }
     }
+    /** join a list of strings by an seperator
+     * @param vec vector to store the split results
+     * @param ret joined string
+     * @param sep seperator used to join strings
+     */
+    inline void join(const std::vector<std::string>& vec, std::string& ret, const std::string& sep = " "){
+        if(vec.empty()) return;
+        if(vec.size() == 1){
+            ret = vec[0];
+            return;
+        }
+        for(uint32_t i = 0; i < vec.size() - 1; ++i){
+            ret.append(vec[i] + sep);
+        }
+        ret.append(vec[vec.size() - 1]);
+    }
 
     /** replace a substr apearing in a string with another string
      * @param str string 
