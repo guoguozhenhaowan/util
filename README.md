@@ -54,3 +54,4 @@ utilities
 |[simulateSV.cpp](./simulateSV.cpp)|simulate SV from reference
 |[fq2fa.c](./fq2fa.c)|a simple tool to convert fastq to fasta
 |[modifyGTF.cpp](./modifyGTF.cpp)|modify UCSC gtf file to add gene name in group column
+|[getFeatureTsv.cpp](./getFeatureTsv.cpp)|extract feature tsv file from UCSC ref gene tsv file with accession number
