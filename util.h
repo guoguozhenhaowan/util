@@ -127,6 +127,25 @@ namespace util{
         }
         ret.append(vec[vec.size() - 1]);
     }
+    
+    /** join a list of strings by an seperator
+     * @param vec vector to store the split results
+     * @param sep seperator used to join strings
+     * @return joined string
+     */
+    inline std::string join(const std::vector<std::string>& vec, const std::string& sep = " "){
+        std::string ret;
+        if(vec.empty()) return ret;
+        if(vec.size() == 1){
+            ret = vec[0];
+            return ret;
+        }
+        for(uint32_t i = 0; i < vec.size() - 1; ++i){
+            ret.append(vec[i] + sep);
+        }
+        ret.append(vec[vec.size() - 1]);
+        return ret;
+    }
 
     /** replace a substr apearing in a string with another string
      * @param str string 
