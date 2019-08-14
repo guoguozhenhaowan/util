@@ -223,7 +223,7 @@ void OnlineBWA::alignSeq(const std::string& seq, const std::string& name, std::v
         uint8_t* mbases = b->data + b->core.l_qname + (b->core.n_cigar << 2);
         std::string fseq = seq;
         if(a.is_rev){
-            fseq = util::reverseComplete(seq);
+            fseq = util::reverseComplement(seq);
         }
         for(uint32_t j = 0; j < fseq.length(); ++j){
             uint8_t base = 15;
@@ -288,7 +288,7 @@ void OnlineBWA::constructIndex(const std::vector<UnalignedSeq>& uv){
     }
     for(auto& e: uv){
         if(e.mName.empty() || e.mSeq.empty()){
-            util::error_exit("nama and sequence must all be unempty to construct a index");
+            util::errorExit("nama and sequence must all be unempty to construct a index");
         }
     }
     if(mIndex){
@@ -336,7 +336,7 @@ void OnlineBWA::constructIndex(const std::vector<UnalignedSeq>& uv){
 void OnlineBWA::loadIndex(const std::string& file){
     bwaidx_t* newIndex = bwa_idx_load(file.c_str(), BWA_IDX_ALL);
     if(!newIndex){
-        util::error_exit("error loading index");
+        util::errorExit("error loading index");
     }
     if(newIndex){
         bwa_idx_destroy(mIndex);

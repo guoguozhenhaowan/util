@@ -9,6 +9,7 @@
 #include <cstring>
 #include <sstream>
 #include <cassert>
+#include <zlib.h>
 #include "util.h"
 #include "bwa/bwa.h"
 #include "bwa/bwt.h"
@@ -22,7 +23,7 @@
 
 extern "C"{
     int is_bwt(ubyte_t *T, int n);
-    KSEQ_DECLARE(gzFile)
+    KSEQ_DECLARE(gzFile);
 }
 
 class OnlineBWA{
