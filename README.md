@@ -56,3 +56,4 @@ utilities
 |[modifyGTF.cpp](./modifyGTF.cpp)|modify UCSC gtf file to add gene name in group column
 |[getFeatureTsv.cpp](./getFeatureTsv.cpp)|extract feature tsv file from UCSC ref gene tsv file with accession number
 |[getSUR.c](./getSUR.c)|extract single unmapped bam records
+|[getAlnByZF.cpp](./getAlnByZF.cpp)|extract bam record by ZF tag
