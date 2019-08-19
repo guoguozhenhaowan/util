@@ -57,3 +57,4 @@ utilities
 |[getFeatureTsv.cpp](./getFeatureTsv.cpp)|extract feature tsv file from UCSC ref gene tsv file with accession number
 |[getSUR.c](./getSUR.c)|extract single unmapped bam records
 |[getAlnByZF.cpp](./getAlnByZF.cpp)|extract bam record by ZF tag
+|[matchFqSeq.c](./matchFqSeq.c)|extract read sequence exactly containning provided seq
