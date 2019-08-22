@@ -623,7 +623,18 @@ namespace bamutil{
         }
         return false;
     }
-  
+
+    /** parse a cigar string to opchr, oplen pair list
+     * @param cigar cigar string
+     * @param ret result vector
+     */
+    inline void parseCigar(const std::string& cigar, std::vector<std::pair<int32_t, char>>& ret){
+        std::string::size_type cpos = 0, lpos = 0;
+        while((cpos = cigar.find_first_of(BAM_CIGAR_STR, lpos)) != std::string::npos){
+            ret.push_back({std::atoi(cigar.substr(lpos, cpos - lpos).c_str()), cigar[cpos]});
+            lpos = cpos + 1;
+        }
+    }
 }
 
 #endif
