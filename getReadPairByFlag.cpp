@@ -1,5 +1,5 @@
 #include "htslib/sam.h"
-#include "kseq.h"
+#include <kseq.h>
 #include <zlib.h>
 #include <string>
 #include <iostream>
