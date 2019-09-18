@@ -58,3 +58,4 @@ utilities
 |[getSUR.c](./getSUR.c)|extract single unmapped bam records
 |[getAlnByZF.cpp](./getAlnByZF.cpp)|extract bam record by ZF tag
 |[matchFqSeq.c](./matchFqSeq.c)|extract read sequence exactly containning provided seq
+|[fqaddbc.c](./fqaddbc.c)|manual add barcode to fastq file
